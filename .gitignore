@@ -1,27 +1,38 @@
-# Frontend
-frontend/node_modules/
+# OS
+.DS_Store
+Thumbs.db
 
-# Compiled class file
-*.class
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
 
-# Log file
+# Logs
 *.log
 
-# BlueJ files
-*.ctxt
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
+# Java / Spring Boot
+*.class
 *.jar
 *.war
 *.nar
 *.ear
-*.zip
-*.tar.gz
-*.rar
+backend/build/
+backend/out/
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-replay_pid*
+# Gradle
+.gradle/
+backend/.gradle/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.env
+frontend/.env.*
+
+# Environment
+.env
+.env.*
