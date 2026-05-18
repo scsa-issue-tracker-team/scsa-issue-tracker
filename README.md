@@ -7,3 +7,4 @@ scsa 팀 협업툴 프로젝트
 
 * Lee Ji Eon
 * Na Danbi
+* Park Si Woo
