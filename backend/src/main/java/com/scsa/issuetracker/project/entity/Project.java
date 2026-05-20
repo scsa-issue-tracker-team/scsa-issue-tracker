@@ -4,7 +4,9 @@ import com.scsa.issuetracker.global.entity.BaseTimeEntity;
 
 import com.scsa.issuetracker.user.entity.User;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
@@ -17,6 +19,7 @@ import lombok.Getter;
                 )
         }
 )
+@NoArgsConstructor(access= AccessLevel.PROTECTED)
 public class Project extends BaseTimeEntity {
 
     @Id
@@ -31,7 +34,6 @@ public class Project extends BaseTimeEntity {
     @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(columnDefinition = "TEXT")
     private String description;
 
 }
