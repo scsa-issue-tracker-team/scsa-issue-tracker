@@ -23,7 +23,7 @@ public class User extends BaseTimeEntity {
     @SequenceGenerator(name = "users_seq_gen", sequenceName = "users_seq", allocationSize = 1)
     private Long id;
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, unique = true, length = 50)
     private String username;
 
     @Column(nullable = false, unique = true, length = 100)
@@ -31,4 +31,14 @@ public class User extends BaseTimeEntity {
 
     @Column(nullable = false, length = 255)
     private String password;
+
+    private User(String username, String email, String password) {
+        this.username = username;
+        this.email = email;
+        this.password = password;
+    }
+
+    public static User create(String username, String email, String password) {
+        return new User(username, email, password);
+    }
 }
