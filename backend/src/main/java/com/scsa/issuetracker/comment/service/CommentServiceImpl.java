@@ -45,13 +45,15 @@ public class CommentServiceImpl implements CommentService {
         issueRepository.findById(issueId)
                 .orElseThrow(() -> new IssueNotFoundException(issueId));
 
-        Pageable pageable = PageRequest.of(offset / limit, limit, Sort.by("createdAt").ascending());
-        Page<Comment> page = commentRepository.findByIssueId(issueId, pageable);
+        List<Comment> allComments = commentRepository.findByIssueIdOrderByCreatedAtAsc(issueId);
+        long total = allComments.size();
 
-        List<CommentResponse> items = page.getContent().stream()
+        List<CommentResponse> items = allComments.stream()
+                .skip(offset)
+                .limit(limit)
                 .map(CommentResponse::from)
                 .toList();
 
-        return CommentPageResponse.of(items, page.getTotalElements());
+        return CommentPageResponse.of(items, total);
     }
 }
