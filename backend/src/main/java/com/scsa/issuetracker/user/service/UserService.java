@@ -9,6 +9,7 @@ import com.scsa.issuetracker.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 
@@ -18,21 +19,24 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public UserResponse createUser(UserCreateRequest request) {
+        if (userRepository.existsByUsername(request.username())) {
+            throw new BusinessException(ErrorCode.DUPLICATE_USERNAME);
+        }
         if (userRepository.existsByEmail(request.email())) {
             throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
         }
 
-        if (userRepository.existsByUsername(request.username())) {
-            throw new BusinessException(ErrorCode.DUPLICATE_USERNAME);
-        }
+
+        String encodedPassword = passwordEncoder.encode(request.password());
 
         User user = User.create(
                 request.username(),
                 request.email(),
-                request.password()
+                encodedPassword
         );
 
         User savedUser = userRepository.save(user);
