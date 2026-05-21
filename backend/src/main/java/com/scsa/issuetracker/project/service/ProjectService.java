@@ -3,6 +3,8 @@ package com.scsa.issuetracker.project.service;
 import com.scsa.issuetracker.project.dto.ProjectDto;
 import com.scsa.issuetracker.project.entity.Project;
 import com.scsa.issuetracker.project.repository.ProjectRepository;
+import com.scsa.issuetracker.user.entity.User;
+import com.scsa.issuetracker.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +16,7 @@ import java.util.List;
 public class ProjectService {
 
     private final ProjectRepository projectRepository;
+    private final UserRepository userRepository;
 
     public List<ProjectDto> getProjects() {
 
@@ -23,6 +26,16 @@ public class ProjectService {
             dtoList.add(new ProjectDto(p.getId(), p.getCreatedById().getId(), p.getName(), p.getDescription()));
         }
         return dtoList;
+
+    }
+
+    public void createProject(ProjectDto dto) {
+
+        System.out.println(userRepository.findAll());
+        User user = userRepository.findById(dto.getCreatedById()).orElseThrow(
+                () -> new IllegalArgumentException("User Not Found.")
+        );
+        projectRepository.save(new Project(null, user, dto.getName(), dto.getDescription()));
 
     }
 
