@@ -20,6 +20,9 @@ public class ProjectController {
         return this.projectService.getProjects();
     }
 
+    @GetMapping("/projects/{projectsId}")
+    public ProjectDto projectOfId(@PathVariable("projectsId") Long id) { return this.projectService.getProjectById(id); }
+
     @PostMapping("/projects")
     public void newProject(@RequestBody ProjectDto dto) {
         this.projectService.createProject(dto);

@@ -29,6 +29,15 @@ public class ProjectService {
 
     }
 
+    public ProjectDto getProjectById(Long id) {
+
+        Project p = this.projectRepository.findById(id).orElseThrow(
+                () -> new IllegalArgumentException("Project Not Found.")
+        );
+        return new ProjectDto(p.getId(), p.getCreatedById().getId(), p.getName(), p.getDescription());
+
+    }
+
     public void createProject(ProjectDto dto) {
 
         System.out.println(userRepository.findAll());
