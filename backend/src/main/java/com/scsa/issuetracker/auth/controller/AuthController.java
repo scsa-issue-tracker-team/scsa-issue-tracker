@@ -1,5 +1,6 @@
 package com.scsa.issuetracker.auth.controller;
 
+import com.scsa.issuetracker.auth.dto.CurrentUserResponse;
 import com.scsa.issuetracker.auth.dto.LoginRequest;
 import com.scsa.issuetracker.auth.dto.LoginResponse;
 import com.scsa.issuetracker.auth.service.AuthService;
@@ -18,4 +19,10 @@ public class AuthController {
     public LoginResponse login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request);
     }
+
+    @GetMapping("/me")
+    public CurrentUserResponse me() {
+        return authService.getCurrentUser();
+    }
+
 }
