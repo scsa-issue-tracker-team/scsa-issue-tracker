@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 public class IssueResponse {
     private Long id;
     private Long projectId;
+    private Long reporterId;
     private Long assigneeId;
     private String title;
     private String content;
