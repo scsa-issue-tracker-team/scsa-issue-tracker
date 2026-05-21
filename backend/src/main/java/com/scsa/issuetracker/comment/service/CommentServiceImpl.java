@@ -5,17 +5,13 @@ import com.scsa.issuetracker.comment.dto.CommentCreateRequest;
 import com.scsa.issuetracker.comment.dto.CommentPageResponse;
 import com.scsa.issuetracker.comment.dto.CommentResponse;
 import com.scsa.issuetracker.comment.repository.CommentRepository;
-import com.scsa.issuetracker.common.exception.IssueNotFoundException;
+import com.scsa.issuetracker.global.exception.BusinessException;
+import com.scsa.issuetracker.global.exception.ErrorCode;
 import com.scsa.issuetracker.issue.repository.IssueRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +25,7 @@ public class CommentServiceImpl implements CommentService {
     @Transactional
     public CommentResponse create(Long projectId, Long issueId, CommentCreateRequest request) {
         issueRepository.findById(issueId)
-                .orElseThrow(() -> new IssueNotFoundException(issueId));
+                .orElseThrow(() -> new BusinessException(ErrorCode.ISSUE_NOT_FOUND));
 
         Comment comment = Comment.builder()
                 .issueId(issueId)
@@ -43,7 +39,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public CommentPageResponse getList(Long projectId, Long issueId, int limit, int offset) {
         issueRepository.findById(issueId)
-                .orElseThrow(() -> new IssueNotFoundException(issueId));
+                .orElseThrow(() -> new BusinessException(ErrorCode.ISSUE_NOT_FOUND));
 
         List<Comment> allComments = commentRepository.findByIssueIdOrderByCreatedAtAsc(issueId);
         long total = allComments.size();

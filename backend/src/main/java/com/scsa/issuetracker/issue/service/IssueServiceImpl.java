@@ -1,6 +1,7 @@
 package com.scsa.issuetracker.issue.service;
 
-import com.scsa.issuetracker.common.exception.ResourceNotFoundException;
+import com.scsa.issuetracker.global.exception.BusinessException;
+import com.scsa.issuetracker.global.exception.ErrorCode;
 import com.scsa.issuetracker.issue.domain.Issue;
 import com.scsa.issuetracker.issue.domain.IssuePriority;
 import com.scsa.issuetracker.issue.domain.IssueStatus;
@@ -18,8 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional
-
 public class IssueServiceImpl implements IssueService {
+
     private final IssueRepository issueRepository;
 
     @Override
@@ -34,51 +35,82 @@ public class IssueServiceImpl implements IssueService {
                 .status(request.getStatus() != null ? request.getStatus() : IssueStatus.OPEN)
                 .priority(request.getPriority())
                 .build();
+
         return IssueResponse.from(issueRepository.save(issue));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<IssueResponse> getIssues(Long projectId, IssueStatus status, IssueType issueType, IssuePriority priority, Pageable pageable) {
+    public Page<IssueResponse> getIssues(
+            Long projectId,
+            IssueStatus status,
+            IssueType issueType,
+            IssuePriority priority,
+            Pageable pageable
+    ) {
         if (status != null && issueType != null && priority != null) {
-            return issueRepository.findByProjectIdAndStatusAndIssueTypeAndPriority(projectId, status, issueType, priority, pageable).map(IssueResponse::from);
-        } else if (status != null) {
-            return issueRepository.findByProjectIdAndStatus(projectId, status, pageable).map(IssueResponse::from);
-        } else if (issueType != null) {
-            return issueRepository.findByProjectIdAndIssueType(projectId, issueType, pageable).map(IssueResponse::from);
-        } else if (priority != null) {
-            return issueRepository.findByProjectIdAndPriority(projectId, priority, pageable).map(IssueResponse::from);
-        } else {
-            return issueRepository.findByProjectId(projectId, pageable).map(IssueResponse::from);
+            return issueRepository.findByProjectIdAndStatusAndIssueTypeAndPriority(projectId, status, issueType, priority, pageable)
+                    .map(IssueResponse::from);
         }
+        if (status != null) {
+            return issueRepository.findByProjectIdAndStatus(projectId, status, pageable)
+                    .map(IssueResponse::from);
+        }
+        if (issueType != null) {
+            return issueRepository.findByProjectIdAndIssueType(projectId, issueType, pageable)
+                    .map(IssueResponse::from);
+        }
+        if (priority != null) {
+            return issueRepository.findByProjectIdAndPriority(projectId, priority, pageable)
+                    .map(IssueResponse::from);
+        }
+
+        return issueRepository.findByProjectId(projectId, pageable)
+                .map(IssueResponse::from);
     }
 
     @Override
     @Transactional(readOnly = true)
     public IssueResponse getIssue(Long issueId) {
         Issue issue = issueRepository.findById(issueId)
-                .orElseThrow(() -> new ResourceNotFoundException("이슈 미발견: " + issueId));
+                .orElseThrow(() -> new BusinessException(ErrorCode.ISSUE_NOT_FOUND));
+
         return IssueResponse.from(issue);
     }
 
     @Override
     public IssueResponse updateIssue(Long issueId, IssueUpdateRequest request) {
         Issue issue = issueRepository.findById(issueId)
-                .orElseThrow(() -> new ResourceNotFoundException("이슈 미발견: " + issueId));
-        if (request.getAssigneeId() != null) issue.setAssigneeId(request.getAssigneeId());
-        if (request.getTitle() != null) issue.setTitle(request.getTitle());
-        if (request.getContent() != null) issue.setContent(request.getContent());
-        if (request.getIssueType() != null) issue.setIssueType(request.getIssueType());
-        if (request.getStatus() != null) issue.setStatus(request.getStatus());
-        if (request.getPriority() != null) issue.setPriority(request.getPriority());
+                .orElseThrow(() -> new BusinessException(ErrorCode.ISSUE_NOT_FOUND));
+
+        if (request.getAssigneeId() != null) {
+            issue.setAssigneeId(request.getAssigneeId());
+        }
+        if (request.getTitle() != null) {
+            issue.setTitle(request.getTitle());
+        }
+        if (request.getContent() != null) {
+            issue.setContent(request.getContent());
+        }
+        if (request.getIssueType() != null) {
+            issue.setIssueType(request.getIssueType());
+        }
+        if (request.getStatus() != null) {
+            issue.setStatus(request.getStatus());
+        }
+        if (request.getPriority() != null) {
+            issue.setPriority(request.getPriority());
+        }
+
         return IssueResponse.from(issueRepository.save(issue));
     }
 
     @Override
     public void deleteIssue(Long issueId) {
         if (!issueRepository.existsById(issueId)) {
-            throw new ResourceNotFoundException("이슈 없음: " + issueId);
+            throw new BusinessException(ErrorCode.ISSUE_NOT_FOUND);
         }
+
         issueRepository.deleteById(issueId);
     }
 }
