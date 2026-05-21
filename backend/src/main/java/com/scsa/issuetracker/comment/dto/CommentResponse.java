@@ -1,18 +1,17 @@
 package com.scsa.issuetracker.comment.dto;
 
 import com.scsa.issuetracker.comment.domain.Comment;
-import lombok.*;
+import lombok.Builder;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
-
 public class CommentResponse {
+
     private Long id;
-    private  Long authorId;
+    private Long authorId;
     private Long issueId;
     private String content;
     private LocalDateTime createdAt;
@@ -24,8 +23,8 @@ public class CommentResponse {
                 .authorId(comment.getAuthorId())
                 .issueId(comment.getIssueId())
                 .content(comment.getContent())
-//                .createdAt(comment.getCreatedAt())
-//                .updatedAt(comment.getUpdatedAt())
+                .createdAt(comment.getCreatedAt())
+                .updatedAt(comment.getUpdatedAt())
                 .build();
     }
 }

@@ -1,9 +1,9 @@
 package com.scsa.issuetracker.comment.service;
 
 import com.scsa.issuetracker.comment.domain.Comment;
-import com.scsa.issuetracker.comment.dto2.CommentCreateRequest;
-import com.scsa.issuetracker.comment.dto2.CommentPageResponse;
-import com.scsa.issuetracker.comment.dto2.CommentResponse;
+import com.scsa.issuetracker.comment.dto.CommentCreateRequest;
+import com.scsa.issuetracker.comment.dto.CommentPageResponse;
+import com.scsa.issuetracker.comment.dto.CommentResponse;
 import com.scsa.issuetracker.comment.repository.CommentRepository;
 import com.scsa.issuetracker.common.exception.IssueNotFoundException;
 import com.scsa.issuetracker.issue.repository.IssueRepository;

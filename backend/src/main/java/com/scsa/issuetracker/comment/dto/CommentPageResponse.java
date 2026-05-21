@@ -1,4 +1,4 @@
-package com.scsa.issuetracker.comment.dto2;
+package com.scsa.issuetracker.comment.dto;
 
 import lombok.Builder;
 import lombok.Getter;
