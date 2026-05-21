@@ -16,16 +16,18 @@ public class ProjectController {
     private final ProjectService projectService;
 
     @GetMapping("/projects")
-    public List<ProjectDto> projectList() {
-        return this.projectService.getProjects();
+    // TODO : SUBSTITUTE REQUEST PARAMETER TO LOGIN ID
+    public List<ProjectDto> projectOfUser(@RequestParam Long userId) {
+        return this.projectService.getProjectByUser(userId);
+    }
+
+    @PostMapping("/projects")
+    // TODO : SUBSTITUTE CREATED_BY_ID IN REQUEST BODY TO LOGIN ID
+    public void newProject(@RequestBody ProjectDto dto) {
+        this.projectService.createProject(dto);
     }
 
     @GetMapping("/projects/{projectsId}")
     public ProjectDto projectOfId(@PathVariable("projectsId") Long id) { return this.projectService.getProjectById(id); }
-
-    @PostMapping("/projects")
-    public void newProject(@RequestBody ProjectDto dto) {
-        this.projectService.createProject(dto);
-    }
 
 }

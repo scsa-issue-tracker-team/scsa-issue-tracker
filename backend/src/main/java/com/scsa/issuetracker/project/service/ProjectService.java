@@ -18,9 +18,9 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
 
-    public List<ProjectDto> getProjects() {
+    public List<ProjectDto> getProjectByUser(Long userId) {
 
-        List<Project> list = this.projectRepository.findAll();
+        List<Project> list = this.projectRepository.findByCreatedById_Id(userId);
         List<ProjectDto> dtoList = new ArrayList<>();
         for (Project p : list) {
             dtoList.add(new ProjectDto(p.getId(), p.getCreatedById().getId(), p.getName(), p.getDescription()));
@@ -40,7 +40,7 @@ public class ProjectService {
 
     public void createProject(ProjectDto dto) {
 
-        System.out.println(userRepository.findAll());
+        System.out.println(dto.getCreatedById());
         User user = userRepository.findById(dto.getCreatedById()).orElseThrow(
                 () -> new IllegalArgumentException("User Not Found.")
         );
