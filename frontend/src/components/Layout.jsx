@@ -1,8 +1,10 @@
 import { Outlet, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
+import { useTheme } from "./ThemeContext.jsx";
 
 export default function Layout() {
   const { currentUser, logout } = useAuth();
+  const { theme, toggle } = useTheme();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -21,6 +23,14 @@ export default function Layout() {
         </Link>
 
         <div className="header-right">
+          <button
+            className="icon-btn theme-toggle"
+            onClick={toggle}
+            aria-label={theme === "dark" ? "라이트 모드로" : "다크 모드로"}
+            title={theme === "dark" ? "라이트 모드" : "다크 모드"}
+          >
+            {theme === "dark" ? "☀" : "☾"}
+          </button>
           {currentUser && (
             <span className="user-chip" title={`사용자 #${currentUser.userId}`}>
               <span className="avatar" aria-hidden>
