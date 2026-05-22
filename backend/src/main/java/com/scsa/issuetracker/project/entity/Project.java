@@ -38,4 +38,7 @@ public class Project extends BaseTimeEntity {
 
     private String description;
 
+    public static Project create(User creator, String name, String description) {
+        return new Project(null, creator, name, description);
+    }
 }
