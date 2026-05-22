@@ -5,6 +5,7 @@ import com.scsa.issuetracker.issue.domain.IssueType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDate;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -26,4 +27,6 @@ public class IssueCreateRequest {
 
     @NotNull(message = "우선순위는 필수입니다.")
     private IssuePriority priority;
+
+    private LocalDate dueDate;
 }

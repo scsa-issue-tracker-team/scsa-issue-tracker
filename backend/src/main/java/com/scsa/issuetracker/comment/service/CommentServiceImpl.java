@@ -1,5 +1,7 @@
 package com.scsa.issuetracker.comment.service;
 
+import com.scsa.issuetracker.activity.ActivityLogService;
+import com.scsa.issuetracker.activity.ActivityType;
 import com.scsa.issuetracker.comment.domain.Comment;
 import com.scsa.issuetracker.comment.dto.CommentCreateRequest;
 import com.scsa.issuetracker.comment.dto.CommentPageResponse;
@@ -26,6 +28,7 @@ public class CommentServiceImpl implements CommentService {
     private final IssueRepository issueRepository;
     private final ProjectAccessValidator projectAccessValidator;
     private final EntityManager entityManager;
+    private final ActivityLogService activityLogService;
 
     @Override
     @Transactional
@@ -39,7 +42,16 @@ public class CommentServiceImpl implements CommentService {
                 .content(request.getContent())
                 .build();
 
-        return CommentResponse.from(commentRepository.save(comment));
+        Comment savedComment = commentRepository.save(comment);
+        activityLogService.record(
+                projectId,
+                issue.getId(),
+                currentUserId,
+                ActivityType.COMMENT_CREATED,
+                "댓글이 작성되었습니다."
+        );
+
+        return CommentResponse.from(savedComment);
     }
 
     @Override
