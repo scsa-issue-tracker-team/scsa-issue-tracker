@@ -2,6 +2,7 @@ package com.scsa.issuetracker.issue.service;
 
 import com.scsa.issuetracker.global.exception.BusinessException;
 import com.scsa.issuetracker.global.exception.ErrorCode;
+import com.scsa.issuetracker.global.security.SecurityUtil;
 import com.scsa.issuetracker.issue.domain.Issue;
 import com.scsa.issuetracker.issue.domain.IssuePriority;
 import com.scsa.issuetracker.issue.domain.IssueStatus;
@@ -25,9 +26,11 @@ public class IssueServiceImpl implements IssueService {
 
     @Override
     public IssueResponse createIssue(Long projectId, IssueCreateRequest request) {
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+
         Issue issue = Issue.builder()
                 .projectId(projectId)
-                .reporterId(request.getReporterId())
+                .reporterId(currentUserId)
                 .assigneeId(request.getAssigneeId())
                 .title(request.getTitle())
                 .content(request.getContent())
@@ -71,17 +74,15 @@ public class IssueServiceImpl implements IssueService {
 
     @Override
     @Transactional(readOnly = true)
-    public IssueResponse getIssue(Long issueId) {
-        Issue issue = issueRepository.findById(issueId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.ISSUE_NOT_FOUND));
+    public IssueResponse getIssue(Long projectId, Long issueId) {
+        Issue issue = getIssueInProject(projectId, issueId);
 
         return IssueResponse.from(issue);
     }
 
     @Override
-    public IssueResponse updateIssue(Long issueId, IssueUpdateRequest request) {
-        Issue issue = issueRepository.findById(issueId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.ISSUE_NOT_FOUND));
+    public IssueResponse updateIssue(Long projectId, Long issueId, IssueUpdateRequest request) {
+        Issue issue = getIssueInProject(projectId, issueId);
 
         if (request.getAssigneeId() != null) {
             issue.setAssigneeId(request.getAssigneeId());
@@ -106,11 +107,14 @@ public class IssueServiceImpl implements IssueService {
     }
 
     @Override
-    public void deleteIssue(Long issueId) {
-        if (!issueRepository.existsById(issueId)) {
-            throw new BusinessException(ErrorCode.ISSUE_NOT_FOUND);
-        }
+    public void deleteIssue(Long projectId, Long issueId) {
+        Issue issue = getIssueInProject(projectId, issueId);
 
-        issueRepository.deleteById(issueId);
+        issueRepository.delete(issue);
+    }
+
+    private Issue getIssueInProject(Long projectId, Long issueId) {
+        return issueRepository.findByIdAndProjectId(issueId, projectId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ISSUE_NOT_FOUND));
     }
 }
