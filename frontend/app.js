@@ -314,7 +314,7 @@ async function loadUsers() {
 
 async function loadProjects() {
   if (!requireLogin()) return;
-  const data = await api(`/api/v1/projects?userId=${state.currentUser.userId}`);
+  const data = await api("/api/v1/projects");
   state.projects = Array.isArray(data) ? data : [];
   renderProjects();
   return data;
@@ -360,7 +360,6 @@ elements.projectForm.addEventListener("submit", async (event) => {
 
   const form = readForm(elements.projectForm);
   const body = {
-    createdById: state.currentUser.userId,
     name: form.name,
     description: form.description,
   };
