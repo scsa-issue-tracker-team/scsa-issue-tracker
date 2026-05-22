@@ -11,7 +11,9 @@ import com.scsa.issuetracker.issue.dto.IssueCreateRequest;
 import com.scsa.issuetracker.issue.dto.IssueResponse;
 import com.scsa.issuetracker.issue.dto.IssueUpdateRequest;
 import com.scsa.issuetracker.issue.repository.IssueRepository;
+import com.scsa.issuetracker.project.entity.Project;
 import com.scsa.issuetracker.projectmember.ProjectAccessValidator;
+import com.scsa.issuetracker.projectmember.ProjectMemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,10 +27,13 @@ public class IssueServiceImpl implements IssueService {
 
     private final IssueRepository issueRepository;
     private final ProjectAccessValidator projectAccessValidator;
+    private final ProjectMemberRepository projectMemberRepository;
 
     @Override
     public IssueResponse createIssue(Long projectId, IssueCreateRequest request) {
-        projectAccessValidator.getAccessibleProject(projectId);
+        Project project = projectAccessValidator.getAccessibleProject(projectId);
+        validateAssignee(project, request.getAssigneeId());
+
         Long currentUserId = SecurityUtil.getCurrentUserId();
 
         Issue issue = Issue.builder()
@@ -56,24 +61,7 @@ public class IssueServiceImpl implements IssueService {
     ) {
         projectAccessValidator.getAccessibleProject(projectId);
 
-        if (status != null && issueType != null && priority != null) {
-            return issueRepository.findByProjectIdAndStatusAndIssueTypeAndPriority(projectId, status, issueType, priority, pageable)
-                    .map(IssueResponse::from);
-        }
-        if (status != null) {
-            return issueRepository.findByProjectIdAndStatus(projectId, status, pageable)
-                    .map(IssueResponse::from);
-        }
-        if (issueType != null) {
-            return issueRepository.findByProjectIdAndIssueType(projectId, issueType, pageable)
-                    .map(IssueResponse::from);
-        }
-        if (priority != null) {
-            return issueRepository.findByProjectIdAndPriority(projectId, priority, pageable)
-                    .map(IssueResponse::from);
-        }
-
-        return issueRepository.findByProjectId(projectId, pageable)
+        return issueRepository.findByProjectIdWithFilters(projectId, status, issueType, priority, pageable)
                 .map(IssueResponse::from);
     }
 
@@ -90,6 +78,8 @@ public class IssueServiceImpl implements IssueService {
         Issue issue = getIssueInProject(projectId, issueId);
 
         if (request.getAssigneeId() != null) {
+            Project project = projectAccessValidator.getAccessibleProject(projectId);
+            validateAssignee(project, request.getAssigneeId());
             issue.setAssigneeId(request.getAssigneeId());
         }
         if (request.getTitle() != null) {
@@ -123,5 +113,18 @@ public class IssueServiceImpl implements IssueService {
 
         return issueRepository.findByIdAndProjectId(issueId, projectId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ISSUE_NOT_FOUND));
+    }
+
+    private void validateAssignee(Project project, Long assigneeId) {
+        if (assigneeId == null) {
+            return;
+        }
+
+        boolean isCreator = project.getCreatedById().getId().equals(assigneeId);
+        boolean isMember = projectMemberRepository.existsByProject_IdAndUser_Id(project.getId(), assigneeId);
+
+        if (!isCreator && !isMember) {
+            throw new BusinessException(ErrorCode.INVALID_ISSUE_ASSIGNEE);
+        }
     }
 }

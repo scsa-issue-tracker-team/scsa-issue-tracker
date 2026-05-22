@@ -45,4 +45,18 @@ public class ProjectMemberService {
                 .map(ProjectMemberResponse::from)
                 .toList();
     }
+
+    @Transactional
+    public void removeMember(Long projectId, Long userId) {
+        Project project = projectAccessValidator.getOwnerProject(projectId);
+
+        ProjectMember member = projectMemberRepository.findByProject_IdAndUser_Id(projectId, userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_MEMBER_NOT_FOUND));
+
+        if (member.getRole() == ProjectMemberRole.OWNER || project.getCreatedById().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.PROJECT_OWNER_CANNOT_BE_REMOVED);
+        }
+
+        projectMemberRepository.delete(member);
+    }
 }

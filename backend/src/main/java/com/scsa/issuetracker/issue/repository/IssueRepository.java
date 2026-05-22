@@ -8,6 +8,8 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface IssueRepository extends JpaRepository<Issue, Long> {
 
@@ -24,6 +26,22 @@ public interface IssueRepository extends JpaRepository<Issue, Long> {
             IssueStatus status,
             IssueType issueType,
             IssuePriority priority,
+            Pageable pageable
+    );
+
+    @Query("""
+            select issue
+            from Issue issue
+            where issue.projectId = :projectId
+              and (:status is null or issue.status = :status)
+              and (:issueType is null or issue.issueType = :issueType)
+              and (:priority is null or issue.priority = :priority)
+            """)
+    Page<Issue> findByProjectIdWithFilters(
+            @Param("projectId") Long projectId,
+            @Param("status") IssueStatus status,
+            @Param("issueType") IssueType issueType,
+            @Param("priority") IssuePriority priority,
             Pageable pageable
     );
 
