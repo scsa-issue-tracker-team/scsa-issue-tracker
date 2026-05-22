@@ -11,6 +11,7 @@ import com.scsa.issuetracker.global.security.SecurityUtil;
 import com.scsa.issuetracker.issue.domain.Issue;
 import com.scsa.issuetracker.issue.repository.IssueRepository;
 import com.scsa.issuetracker.projectmember.ProjectAccessValidator;
+import jakarta.persistence.EntityManager;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final IssueRepository issueRepository;
     private final ProjectAccessValidator projectAccessValidator;
+    private final EntityManager entityManager;
 
     @Override
     @Transactional
@@ -44,12 +46,23 @@ public class CommentServiceImpl implements CommentService {
     public CommentPageResponse getList(Long projectId, Long issueId, int limit, int offset) {
         Issue issue = getIssueInProject(projectId, issueId);
 
-        List<Comment> allComments = commentRepository.findByIssueIdOrderByCreatedAtAsc(issue.getId());
-        long total = allComments.size();
+        List<Comment> comments = entityManager.createQuery(
+                        """
+                                select comment
+                                from Comment comment
+                                where comment.issueId = :issueId
+                                order by comment.createdAt asc
+                                """,
+                        Comment.class
+                )
+                .setParameter("issueId", issue.getId())
+                .setFirstResult(offset)
+                .setMaxResults(limit)
+                .getResultList();
 
-        List<CommentResponse> items = allComments.stream()
-                .skip(offset)
-                .limit(limit)
+        long total = commentRepository.countByIssueId(issue.getId());
+
+        List<CommentResponse> items = comments.stream()
                 .map(CommentResponse::from)
                 .toList();
 
