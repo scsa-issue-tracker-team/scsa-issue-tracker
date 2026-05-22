@@ -7,6 +7,8 @@ import com.scsa.issuetracker.comment.dto.CommentResponse;
 import com.scsa.issuetracker.comment.repository.CommentRepository;
 import com.scsa.issuetracker.global.exception.BusinessException;
 import com.scsa.issuetracker.global.exception.ErrorCode;
+import com.scsa.issuetracker.global.security.SecurityUtil;
+import com.scsa.issuetracker.issue.domain.Issue;
 import com.scsa.issuetracker.issue.repository.IssueRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -24,12 +26,12 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional
     public CommentResponse create(Long projectId, Long issueId, CommentCreateRequest request) {
-        issueRepository.findById(issueId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.ISSUE_NOT_FOUND));
+        Issue issue = getIssueInProject(projectId, issueId);
+        Long currentUserId = SecurityUtil.getCurrentUserId();
 
         Comment comment = Comment.builder()
-                .issueId(issueId)
-                .authorId(request.getAuthorId())
+                .issueId(issue.getId())
+                .authorId(currentUserId)
                 .content(request.getContent())
                 .build();
 
@@ -38,10 +40,9 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public CommentPageResponse getList(Long projectId, Long issueId, int limit, int offset) {
-        issueRepository.findById(issueId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.ISSUE_NOT_FOUND));
+        Issue issue = getIssueInProject(projectId, issueId);
 
-        List<Comment> allComments = commentRepository.findByIssueIdOrderByCreatedAtAsc(issueId);
+        List<Comment> allComments = commentRepository.findByIssueIdOrderByCreatedAtAsc(issue.getId());
         long total = allComments.size();
 
         List<CommentResponse> items = allComments.stream()
@@ -51,5 +52,10 @@ public class CommentServiceImpl implements CommentService {
                 .toList();
 
         return CommentPageResponse.of(items, total);
+    }
+
+    private Issue getIssueInProject(Long projectId, Long issueId) {
+        return issueRepository.findByIdAndProjectId(issueId, projectId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ISSUE_NOT_FOUND));
     }
 }

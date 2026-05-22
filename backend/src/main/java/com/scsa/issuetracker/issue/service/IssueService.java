@@ -10,9 +10,20 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface IssueService {
+
     IssueResponse createIssue(Long projectId, IssueCreateRequest request);
-    Page<IssueResponse> getIssues(Long projectId, IssueStatus status, IssueType issueType, IssuePriority priority, Pageable pageable);
-    IssueResponse getIssue(Long issueId);
-    IssueResponse updateIssue(Long issueId, IssueUpdateRequest request);
-    void deleteIssue(Long issueId);
+
+    Page<IssueResponse> getIssues(
+            Long projectId,
+            IssueStatus status,
+            IssueType issueType,
+            IssuePriority priority,
+            Pageable pageable
+    );
+
+    IssueResponse getIssue(Long projectId, Long issueId);
+
+    IssueResponse updateIssue(Long projectId, Long issueId, IssueUpdateRequest request);
+
+    void deleteIssue(Long projectId, Long issueId);
 }
