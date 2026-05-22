@@ -1,7 +1,6 @@
 package com.scsa.issuetracker.issue.dto;
 
 import com.scsa.issuetracker.issue.domain.IssuePriority;
-import com.scsa.issuetracker.issue.domain.IssueStatus;
 import com.scsa.issuetracker.issue.domain.IssueType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -21,8 +20,6 @@ public class IssueCreateRequest {
 
     @NotNull
     private IssueType issueType;
-
-    private IssueStatus status;
 
     @NotNull
     private IssuePriority priority;
