@@ -1,5 +1,7 @@
 package com.scsa.issuetracker.comment.service;
 
+import com.scsa.issuetracker.activity.ActivityLogService;
+import com.scsa.issuetracker.activity.ActivityType;
 import com.scsa.issuetracker.comment.domain.Comment;
 import com.scsa.issuetracker.comment.dto.CommentCreateRequest;
 import com.scsa.issuetracker.comment.dto.CommentPageResponse;
@@ -26,6 +28,7 @@ public class CommentServiceImpl implements CommentService {
     private final IssueRepository issueRepository;
     private final ProjectAccessValidator projectAccessValidator;
     private final EntityManager entityManager;
+    private final ActivityLogService activityLogService;
 
     @Override
     @Transactional
@@ -36,10 +39,20 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = Comment.builder()
                 .issueId(issue.getId())
                 .authorId(currentUserId)
+                .parentId(null)
                 .content(request.getContent())
                 .build();
 
-        return CommentResponse.from(commentRepository.save(comment));
+        Comment savedComment = commentRepository.save(comment);
+        activityLogService.record(
+                projectId,
+                issue.getId(),
+                currentUserId,
+                ActivityType.COMMENT_CREATED,
+                "댓글이 작성되었습니다."
+        );
+
+        return CommentResponse.from(savedComment);
     }
 
     @Override
@@ -51,6 +64,7 @@ public class CommentServiceImpl implements CommentService {
                                 select comment
                                 from Comment comment
                                 where comment.issueId = :issueId
+                                  and comment.parentId is null
                                 order by comment.createdAt asc
                                 """,
                         Comment.class
@@ -60,9 +74,79 @@ public class CommentServiceImpl implements CommentService {
                 .setMaxResults(limit)
                 .getResultList();
 
-        long total = commentRepository.countByIssueId(issue.getId());
+        long total = commentRepository.countByIssueIdAndParentIdIsNull(issue.getId());
 
         List<CommentResponse> items = comments.stream()
+                .map(comment -> CommentResponse.from(
+                        comment,
+                        commentRepository.countByIssueIdAndParentId(issue.getId(), comment.getId())
+                ))
+                .toList();
+
+        return CommentPageResponse.of(items, total);
+    }
+
+    @Override
+    @Transactional
+    public CommentResponse createReply(
+            Long projectId,
+            Long issueId,
+            Long commentId,
+            CommentCreateRequest request
+    ) {
+        Issue issue = getIssueInProject(projectId, issueId);
+        Comment parentComment = getRootComment(issue.getId(), commentId);
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+
+        Comment reply = Comment.builder()
+                .issueId(issue.getId())
+                .authorId(currentUserId)
+                .parentId(parentComment.getId())
+                .content(request.getContent())
+                .build();
+
+        Comment savedReply = commentRepository.save(reply);
+        activityLogService.record(
+                projectId,
+                issue.getId(),
+                currentUserId,
+                ActivityType.COMMENT_CREATED,
+                "대댓글이 작성되었습니다."
+        );
+
+        return CommentResponse.from(savedReply);
+    }
+
+    @Override
+    public CommentPageResponse getReplies(
+            Long projectId,
+            Long issueId,
+            Long commentId,
+            int limit,
+            int offset
+    ) {
+        Issue issue = getIssueInProject(projectId, issueId);
+        Comment parentComment = getRootComment(issue.getId(), commentId);
+
+        List<Comment> replies = entityManager.createQuery(
+                        """
+                                select comment
+                                from Comment comment
+                                where comment.issueId = :issueId
+                                  and comment.parentId = :parentId
+                                order by comment.createdAt asc
+                                """,
+                        Comment.class
+                )
+                .setParameter("issueId", issue.getId())
+                .setParameter("parentId", parentComment.getId())
+                .setFirstResult(offset)
+                .setMaxResults(limit)
+                .getResultList();
+
+        long total = commentRepository.countByIssueIdAndParentId(issue.getId(), parentComment.getId());
+
+        List<CommentResponse> items = replies.stream()
                 .map(CommentResponse::from)
                 .toList();
 
@@ -74,5 +158,16 @@ public class CommentServiceImpl implements CommentService {
 
         return issueRepository.findByIdAndProjectId(issueId, projectId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ISSUE_NOT_FOUND));
+    }
+
+    private Comment getRootComment(Long issueId, Long commentId) {
+        Comment comment = commentRepository.findByIdAndIssueId(commentId, issueId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
+
+        if (comment.getParentId() != null) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST, "대댓글에는 다시 답글을 달 수 없습니다.");
+        }
+
+        return comment;
     }
 }

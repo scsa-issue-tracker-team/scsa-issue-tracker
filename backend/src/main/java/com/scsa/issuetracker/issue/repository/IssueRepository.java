@@ -46,4 +46,40 @@ public interface IssueRepository extends JpaRepository<Issue, Long> {
     );
 
     Optional<Issue> findByIdAndProjectId(Long issueId, Long projectId);
+
+    @Query("""
+            select issue
+            from Issue issue
+            where issue.assigneeId = :userId
+              and (:status is null or issue.status = :status)
+            """)
+    Page<Issue> findAssignedToUser(
+            @Param("userId") Long userId,
+            @Param("status") IssueStatus status,
+            Pageable pageable
+    );
+
+    @Query("""
+            select issue
+            from Issue issue
+            where issue.reporterId = :userId
+              and (:status is null or issue.status = :status)
+            """)
+    Page<Issue> findReportedByUser(
+            @Param("userId") Long userId,
+            @Param("status") IssueStatus status,
+            Pageable pageable
+    );
+
+    @Query("""
+            select issue
+            from Issue issue
+            where (issue.assigneeId = :userId or issue.reporterId = :userId)
+              and (:status is null or issue.status = :status)
+            """)
+    Page<Issue> findRelatedToUser(
+            @Param("userId") Long userId,
+            @Param("status") IssueStatus status,
+            Pageable pageable
+    );
 }

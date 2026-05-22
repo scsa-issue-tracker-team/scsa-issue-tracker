@@ -3,6 +3,7 @@ package com.scsa.issuetracker.issue.dto;
 import com.scsa.issuetracker.issue.domain.IssuePriority;
 import com.scsa.issuetracker.issue.domain.IssueType;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDate;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -20,4 +21,5 @@ public class IssueUpdateRequest {
 
     private IssueType issueType;
     private IssuePriority priority;
+    private LocalDate dueDate;
 }
