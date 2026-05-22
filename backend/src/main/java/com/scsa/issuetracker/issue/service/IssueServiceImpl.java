@@ -9,6 +9,7 @@ import com.scsa.issuetracker.issue.domain.IssueStatus;
 import com.scsa.issuetracker.issue.domain.IssueType;
 import com.scsa.issuetracker.issue.dto.IssueCreateRequest;
 import com.scsa.issuetracker.issue.dto.IssueResponse;
+import com.scsa.issuetracker.issue.dto.IssueStatusUpdateRequest;
 import com.scsa.issuetracker.issue.dto.IssueUpdateRequest;
 import com.scsa.issuetracker.issue.repository.IssueRepository;
 import com.scsa.issuetracker.project.entity.Project;
@@ -43,7 +44,7 @@ public class IssueServiceImpl implements IssueService {
                 .title(request.getTitle())
                 .content(request.getContent())
                 .issueType(request.getIssueType())
-                .status(request.getStatus() != null ? request.getStatus() : IssueStatus.OPEN)
+                .status(IssueStatus.OPEN)
                 .priority(request.getPriority())
                 .build();
 
@@ -91,12 +92,17 @@ public class IssueServiceImpl implements IssueService {
         if (request.getIssueType() != null) {
             issue.setIssueType(request.getIssueType());
         }
-        if (request.getStatus() != null) {
-            issue.setStatus(request.getStatus());
-        }
         if (request.getPriority() != null) {
             issue.setPriority(request.getPriority());
         }
+
+        return IssueResponse.from(issueRepository.save(issue));
+    }
+
+    @Override
+    public IssueResponse updateIssueStatus(Long projectId, Long issueId, IssueStatusUpdateRequest request) {
+        Issue issue = getIssueInProject(projectId, issueId);
+        issue.setStatus(request.status());
 
         return IssueResponse.from(issueRepository.save(issue));
     }

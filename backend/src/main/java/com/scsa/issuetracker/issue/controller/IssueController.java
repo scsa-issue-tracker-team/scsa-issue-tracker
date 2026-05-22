@@ -5,6 +5,7 @@ import com.scsa.issuetracker.issue.domain.IssueStatus;
 import com.scsa.issuetracker.issue.domain.IssueType;
 import com.scsa.issuetracker.issue.dto.IssueCreateRequest;
 import com.scsa.issuetracker.issue.dto.IssueResponse;
+import com.scsa.issuetracker.issue.dto.IssueStatusUpdateRequest;
 import com.scsa.issuetracker.issue.dto.IssueUpdateRequest;
 import com.scsa.issuetracker.issue.service.IssueService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -71,6 +72,16 @@ public class IssueController {
             @Valid @RequestBody IssueUpdateRequest request
     ) {
         return ResponseEntity.ok(issueService.updateIssue(projectId, issueId, request));
+    }
+
+    @Operation(summary = "Update issue status")
+    @PatchMapping("/{issueId}/status")
+    public ResponseEntity<IssueResponse> updateIssueStatus(
+            @PathVariable Long projectId,
+            @PathVariable Long issueId,
+            @Valid @RequestBody IssueStatusUpdateRequest request
+    ) {
+        return ResponseEntity.ok(issueService.updateIssueStatus(projectId, issueId, request));
     }
 
     @Operation(summary = "Delete issue")
