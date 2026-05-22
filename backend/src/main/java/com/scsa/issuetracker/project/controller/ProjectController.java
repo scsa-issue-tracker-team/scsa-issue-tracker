@@ -1,33 +1,35 @@
 package com.scsa.issuetracker.project.controller;
 
-import com.scsa.issuetracker.project.dto.ProjectDto;
+import com.scsa.issuetracker.project.dto.ProjectCreateRequest;
+import com.scsa.issuetracker.project.dto.ProjectResponse;
 import com.scsa.issuetracker.project.service.ProjectService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/projects")
 public class ProjectController {
 
     private final ProjectService projectService;
 
-    @GetMapping("/projects")
-    // TODO : SUBSTITUTE REQUEST PARAMETER TO LOGIN ID
-    public List<ProjectDto> projectOfUser(@RequestParam Long userId) {
-        return this.projectService.getProjectByUser(userId);
+    @GetMapping
+    public List<ProjectResponse> getMyProjects() {
+        return projectService.getMyProjects();
     }
 
-    @PostMapping("/projects")
-    // TODO : SUBSTITUTE CREATED_BY_ID IN REQUEST BODY TO LOGIN ID
-    public void newProject(@RequestBody ProjectDto dto) {
-        this.projectService.createProject(dto);
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ProjectResponse createProject(@Valid @RequestBody ProjectCreateRequest request) {
+        return projectService.createProject(request);
     }
 
-    @GetMapping("/projects/{projectsId}")
-    public ProjectDto projectOfId(@PathVariable("projectsId") Long id) { return this.projectService.getProjectById(id); }
-
+    @GetMapping("/{projectId}")
+    public ProjectResponse getProject(@PathVariable Long projectId) {
+        return projectService.getProject(projectId);
+    }
 }
