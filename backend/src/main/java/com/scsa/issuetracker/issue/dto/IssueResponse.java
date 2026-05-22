@@ -7,6 +7,7 @@ import com.scsa.issuetracker.issue.domain.IssueType;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -22,6 +23,7 @@ public class IssueResponse {
     private IssueType issueType;
     private IssueStatus status;
     private IssuePriority priority;
+    private LocalDate dueDate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -36,6 +38,7 @@ public class IssueResponse {
                 .issueType(issue.getIssueType())
                 .status(issue.getStatus())
                 .priority(issue.getPriority())
+                .dueDate(issue.getDueDate())
                 .createdAt(issue.getCreatedAt())
                 .updatedAt(issue.getUpdatedAt())
                 .build();

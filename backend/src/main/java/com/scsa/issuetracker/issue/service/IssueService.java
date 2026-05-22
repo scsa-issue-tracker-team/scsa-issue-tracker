@@ -3,6 +3,7 @@ package com.scsa.issuetracker.issue.service;
 import com.scsa.issuetracker.issue.domain.IssuePriority;
 import com.scsa.issuetracker.issue.domain.IssueStatus;
 import com.scsa.issuetracker.issue.domain.IssueType;
+import com.scsa.issuetracker.issue.domain.MyIssueRole;
 import com.scsa.issuetracker.issue.dto.IssueCreateRequest;
 import com.scsa.issuetracker.issue.dto.IssueResponse;
 import com.scsa.issuetracker.issue.dto.IssueStatusUpdateRequest;
@@ -21,6 +22,8 @@ public interface IssueService {
             IssuePriority priority,
             Pageable pageable
     );
+
+    Page<IssueResponse> getMyIssues(MyIssueRole role, IssueStatus status, Pageable pageable);
 
     IssueResponse getIssue(Long projectId, Long issueId);
 
