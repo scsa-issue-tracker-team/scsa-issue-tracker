@@ -44,4 +44,29 @@ public class CommentController {
     ) {
         return ResponseEntity.ok(commentService.getList(projectId, issueId, limit, offset));
     }
+
+    @Operation(summary = "대댓글 작성", description = "댓글에 답글을 작성합니다.")
+    @PostMapping("/{commentId}/replies")
+    public ResponseEntity<CommentResponse> createReply(
+            @PathVariable Long projectId,
+            @PathVariable Long issueId,
+            @PathVariable Long commentId,
+            @Valid @RequestBody CommentCreateRequest request
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(commentService.createReply(projectId, issueId, commentId, request));
+    }
+
+    @Operation(summary = "대댓글 목록 조회", description = "댓글의 답글 목록을 조회합니다.")
+    @GetMapping("/{commentId}/replies")
+    public ResponseEntity<CommentPageResponse> getReplies(
+            @PathVariable Long projectId,
+            @PathVariable Long issueId,
+            @PathVariable Long commentId,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int limit,
+            @RequestParam(defaultValue = "0") @Min(0) int offset
+    ) {
+        return ResponseEntity.ok(commentService.getReplies(projectId, issueId, commentId, limit, offset));
+    }
 }
