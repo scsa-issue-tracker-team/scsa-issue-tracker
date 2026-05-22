@@ -34,6 +34,8 @@ public class Comment extends BaseTimeEntity {
     @Column(nullable = false)
     private Long issueId;
 
+    private Long parentId;
+
     @Column(columnDefinition = "CLOB", nullable = false)
     private String content;
 }

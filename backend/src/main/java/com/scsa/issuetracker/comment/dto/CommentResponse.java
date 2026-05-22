@@ -13,16 +13,24 @@ public class CommentResponse {
     private Long id;
     private Long authorId;
     private Long issueId;
+    private Long parentId;
     private String content;
+    private long replyCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     public static CommentResponse from(Comment comment) {
+        return from(comment, 0);
+    }
+
+    public static CommentResponse from(Comment comment, long replyCount) {
         return CommentResponse.builder()
                 .id(comment.getId())
                 .authorId(comment.getAuthorId())
                 .issueId(comment.getIssueId())
+                .parentId(comment.getParentId())
                 .content(comment.getContent())
+                .replyCount(replyCount)
                 .createdAt(comment.getCreatedAt())
                 .updatedAt(comment.getUpdatedAt())
                 .build();
