@@ -10,6 +10,7 @@ import com.scsa.issuetracker.global.exception.ErrorCode;
 import com.scsa.issuetracker.global.security.SecurityUtil;
 import com.scsa.issuetracker.issue.domain.Issue;
 import com.scsa.issuetracker.issue.repository.IssueRepository;
+import com.scsa.issuetracker.projectmember.ProjectAccessValidator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ public class CommentServiceImpl implements CommentService {
 
     private final CommentRepository commentRepository;
     private final IssueRepository issueRepository;
+    private final ProjectAccessValidator projectAccessValidator;
 
     @Override
     @Transactional
@@ -55,6 +57,8 @@ public class CommentServiceImpl implements CommentService {
     }
 
     private Issue getIssueInProject(Long projectId, Long issueId) {
+        projectAccessValidator.getAccessibleProject(projectId);
+
         return issueRepository.findByIdAndProjectId(issueId, projectId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ISSUE_NOT_FOUND));
     }

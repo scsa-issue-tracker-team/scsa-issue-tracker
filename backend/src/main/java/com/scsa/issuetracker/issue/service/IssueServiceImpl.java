@@ -11,6 +11,7 @@ import com.scsa.issuetracker.issue.dto.IssueCreateRequest;
 import com.scsa.issuetracker.issue.dto.IssueResponse;
 import com.scsa.issuetracker.issue.dto.IssueUpdateRequest;
 import com.scsa.issuetracker.issue.repository.IssueRepository;
+import com.scsa.issuetracker.projectmember.ProjectAccessValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,9 +24,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class IssueServiceImpl implements IssueService {
 
     private final IssueRepository issueRepository;
+    private final ProjectAccessValidator projectAccessValidator;
 
     @Override
     public IssueResponse createIssue(Long projectId, IssueCreateRequest request) {
+        projectAccessValidator.getAccessibleProject(projectId);
         Long currentUserId = SecurityUtil.getCurrentUserId();
 
         Issue issue = Issue.builder()
@@ -51,6 +54,8 @@ public class IssueServiceImpl implements IssueService {
             IssuePriority priority,
             Pageable pageable
     ) {
+        projectAccessValidator.getAccessibleProject(projectId);
+
         if (status != null && issueType != null && priority != null) {
             return issueRepository.findByProjectIdAndStatusAndIssueTypeAndPriority(projectId, status, issueType, priority, pageable)
                     .map(IssueResponse::from);
@@ -114,6 +119,8 @@ public class IssueServiceImpl implements IssueService {
     }
 
     private Issue getIssueInProject(Long projectId, Long issueId) {
+        projectAccessValidator.getAccessibleProject(projectId);
+
         return issueRepository.findByIdAndProjectId(issueId, projectId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ISSUE_NOT_FOUND));
     }
