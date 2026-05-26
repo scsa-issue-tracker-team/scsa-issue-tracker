@@ -1,10 +1,13 @@
 package com.scsa.issuetracker.reaction;
 
+import com.scsa.issuetracker.comment.domain.Comment;
 import com.scsa.issuetracker.comment.repository.CommentRepository;
 import com.scsa.issuetracker.global.exception.BusinessException;
 import com.scsa.issuetracker.global.exception.ErrorCode;
 import com.scsa.issuetracker.global.security.SecurityUtil;
+import com.scsa.issuetracker.issue.domain.Issue;
 import com.scsa.issuetracker.issue.repository.IssueRepository;
+import com.scsa.issuetracker.notification.NotificationService;
 import com.scsa.issuetracker.projectmember.ProjectAccessValidator;
 import com.scsa.issuetracker.reaction.dto.ReactionCountResponse;
 import com.scsa.issuetracker.reaction.dto.ReactionRequest;
@@ -27,6 +30,7 @@ public class ReactionService {
     private final IssueRepository issueRepository;
     private final CommentRepository commentRepository;
     private final ProjectAccessValidator projectAccessValidator;
+    private final NotificationService notificationService;
 
     @Transactional
     public ReactionSummaryResponse addIssueReaction(
@@ -34,8 +38,17 @@ public class ReactionService {
             Long issueId,
             ReactionRequest request
     ) {
-        validateIssue(projectId, issueId);
-        addReaction(ReactionTargetType.ISSUE, issueId, request.reactionType());
+        Issue issue = validateIssue(projectId, issueId);
+        boolean created = addReaction(ReactionTargetType.ISSUE, issueId, request.reactionType());
+        if (created) {
+            notificationService.notifyReactionAdded(
+                    projectId,
+                    issueId,
+                    null,
+                    SecurityUtil.getCurrentUserId(),
+                    issue.getReporterId()
+            );
+        }
 
         return getIssueReactions(projectId, issueId);
     }
@@ -65,8 +78,17 @@ public class ReactionService {
             Long commentId,
             ReactionRequest request
     ) {
-        validateComment(projectId, issueId, commentId);
-        addReaction(ReactionTargetType.COMMENT, commentId, request.reactionType());
+        Comment comment = validateComment(projectId, issueId, commentId);
+        boolean created = addReaction(ReactionTargetType.COMMENT, commentId, request.reactionType());
+        if (created) {
+            notificationService.notifyReactionAdded(
+                    projectId,
+                    issueId,
+                    commentId,
+                    SecurityUtil.getCurrentUserId(),
+                    comment.getAuthorId()
+            );
+        }
 
         return getCommentReactions(projectId, issueId, commentId);
     }
@@ -90,7 +112,7 @@ public class ReactionService {
         return summarize(ReactionTargetType.COMMENT, commentId);
     }
 
-    private void addReaction(ReactionTargetType targetType, Long targetId, ReactionType reactionType) {
+    private boolean addReaction(ReactionTargetType targetType, Long targetId, ReactionType reactionType) {
         Long currentUserId = SecurityUtil.getCurrentUserId();
         boolean alreadyReacted = reactionRepository
                 .findByTargetTypeAndTargetIdAndUserIdAndReactionType(
@@ -103,7 +125,10 @@ public class ReactionService {
 
         if (!alreadyReacted) {
             reactionRepository.save(Reaction.of(targetType, targetId, currentUserId, reactionType));
+            return true;
         }
+
+        return false;
     }
 
     private void removeReaction(ReactionTargetType targetType, Long targetId, ReactionType reactionType) {
@@ -138,15 +163,15 @@ public class ReactionService {
         return new ReactionSummaryResponse(response);
     }
 
-    private void validateIssue(Long projectId, Long issueId) {
+    private Issue validateIssue(Long projectId, Long issueId) {
         projectAccessValidator.getAccessibleProject(projectId);
-        issueRepository.findByIdAndProjectId(issueId, projectId)
+        return issueRepository.findByIdAndProjectId(issueId, projectId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ISSUE_NOT_FOUND));
     }
 
-    private void validateComment(Long projectId, Long issueId, Long commentId) {
+    private Comment validateComment(Long projectId, Long issueId, Long commentId) {
         validateIssue(projectId, issueId);
-        commentRepository.findByIdAndIssueId(commentId, issueId)
+        return commentRepository.findByIdAndIssueId(commentId, issueId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
     }
 }

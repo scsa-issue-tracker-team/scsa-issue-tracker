@@ -12,8 +12,10 @@ import com.scsa.issuetracker.global.exception.ErrorCode;
 import com.scsa.issuetracker.global.security.SecurityUtil;
 import com.scsa.issuetracker.issue.domain.Issue;
 import com.scsa.issuetracker.issue.repository.IssueRepository;
+import com.scsa.issuetracker.notification.NotificationService;
 import com.scsa.issuetracker.projectmember.ProjectAccessValidator;
 import jakarta.persistence.EntityManager;
+import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,7 @@ public class CommentServiceImpl implements CommentService {
     private final ProjectAccessValidator projectAccessValidator;
     private final EntityManager entityManager;
     private final ActivityLogService activityLogService;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -50,6 +53,13 @@ public class CommentServiceImpl implements CommentService {
                 currentUserId,
                 ActivityType.COMMENT_CREATED,
                 "댓글이 작성되었습니다."
+        );
+        notificationService.notifyCommentCreated(
+                projectId,
+                issue.getId(),
+                savedComment.getId(),
+                currentUserId,
+                Arrays.asList(issue.getReporterId(), issue.getAssigneeId())
         );
 
         return CommentResponse.from(savedComment);
@@ -112,6 +122,13 @@ public class CommentServiceImpl implements CommentService {
                 currentUserId,
                 ActivityType.COMMENT_CREATED,
                 "대댓글이 작성되었습니다."
+        );
+        notificationService.notifyReplyCreated(
+                projectId,
+                issue.getId(),
+                savedReply.getId(),
+                currentUserId,
+                parentComment.getAuthorId()
         );
 
         return CommentResponse.from(savedReply);
