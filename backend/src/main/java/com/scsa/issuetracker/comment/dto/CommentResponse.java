@@ -15,6 +15,7 @@ public class CommentResponse {
     private Long issueId;
     private Long parentId;
     private String content;
+    private boolean deleted;
     private long replyCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -29,7 +30,8 @@ public class CommentResponse {
                 .authorId(comment.getAuthorId())
                 .issueId(comment.getIssueId())
                 .parentId(comment.getParentId())
-                .content(comment.getContent())
+                .content(comment.isDeleted() ? "삭제된 댓글입니다." : comment.getContent())
+                .deleted(comment.isDeleted())
                 .replyCount(replyCount)
                 .createdAt(comment.getCreatedAt())
                 .updatedAt(comment.getUpdatedAt())
