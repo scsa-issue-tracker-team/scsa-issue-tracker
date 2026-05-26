@@ -15,9 +15,11 @@ import com.scsa.issuetracker.issue.dto.IssueResponse;
 import com.scsa.issuetracker.issue.dto.IssueStatusUpdateRequest;
 import com.scsa.issuetracker.issue.dto.IssueUpdateRequest;
 import com.scsa.issuetracker.issue.repository.IssueRepository;
+import com.scsa.issuetracker.notification.NotificationService;
 import com.scsa.issuetracker.project.entity.Project;
 import com.scsa.issuetracker.projectmember.ProjectAccessValidator;
 import com.scsa.issuetracker.projectmember.ProjectMemberRepository;
+import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +35,7 @@ public class IssueServiceImpl implements IssueService {
     private final ProjectAccessValidator projectAccessValidator;
     private final ProjectMemberRepository projectMemberRepository;
     private final ActivityLogService activityLogService;
+    private final NotificationService notificationService;
 
     @Override
     public IssueResponse createIssue(Long projectId, IssueCreateRequest request) {
@@ -60,6 +63,12 @@ public class IssueServiceImpl implements IssueService {
                 currentUserId,
                 ActivityType.ISSUE_CREATED,
                 "이슈가 생성되었습니다."
+        );
+        notificationService.notifyIssueAssigned(
+                projectId,
+                savedIssue.getId(),
+                currentUserId,
+                savedIssue.getAssigneeId()
         );
 
         return IssueResponse.from(savedIssue);
@@ -120,6 +129,12 @@ public class IssueServiceImpl implements IssueService {
                         ActivityType.ISSUE_ASSIGNEE_CHANGED,
                         "담당자가 변경되었습니다."
                 );
+                notificationService.notifyIssueAssigned(
+                        projectId,
+                        issueId,
+                        currentUserId,
+                        request.getAssigneeId()
+                );
             }
             changed = true;
         }
@@ -168,6 +183,13 @@ public class IssueServiceImpl implements IssueService {
                 currentUserId,
                 ActivityType.ISSUE_STATUS_CHANGED,
                 "이슈 상태가 " + request.status() + "(으)로 변경되었습니다."
+        );
+        notificationService.notifyIssueStatusChanged(
+                projectId,
+                issueId,
+                currentUserId,
+                Arrays.asList(issue.getReporterId(), issue.getAssigneeId()),
+                request.status().name()
         );
 
         return IssueResponse.from(issueRepository.save(issue));
