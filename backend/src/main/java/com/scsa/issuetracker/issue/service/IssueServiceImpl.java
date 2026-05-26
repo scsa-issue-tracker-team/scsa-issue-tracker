@@ -14,12 +14,17 @@ import com.scsa.issuetracker.issue.dto.IssueCreateRequest;
 import com.scsa.issuetracker.issue.dto.IssueResponse;
 import com.scsa.issuetracker.issue.dto.IssueStatusUpdateRequest;
 import com.scsa.issuetracker.issue.dto.IssueUpdateRequest;
+import com.scsa.issuetracker.issue.dto.MyIssueSummaryResponse;
 import com.scsa.issuetracker.issue.repository.IssueRepository;
 import com.scsa.issuetracker.notification.NotificationService;
 import com.scsa.issuetracker.project.entity.Project;
 import com.scsa.issuetracker.projectmember.ProjectAccessValidator;
 import com.scsa.issuetracker.projectmember.ProjectMemberRepository;
+import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -81,11 +86,27 @@ public class IssueServiceImpl implements IssueService {
             IssueStatus status,
             IssueType issueType,
             IssuePriority priority,
+            Long assigneeId,
+            Long reporterId,
+            LocalDate dueDateFrom,
+            LocalDate dueDateTo,
+            String keyword,
             Pageable pageable
     ) {
         projectAccessValidator.getAccessibleProject(projectId);
 
-        return issueRepository.findByProjectIdWithFilters(projectId, status, issueType, priority, pageable)
+        return issueRepository.findByProjectIdWithFilters(
+                        projectId,
+                        status,
+                        issueType,
+                        priority,
+                        assigneeId,
+                        reporterId,
+                        dueDateFrom,
+                        dueDateTo,
+                        normalizeKeyword(keyword),
+                        pageable
+                )
                 .map(IssueResponse::from);
     }
 
@@ -100,6 +121,30 @@ public class IssueServiceImpl implements IssueService {
             case REPORTER -> issueRepository.findReportedByUser(currentUserId, status, pageable);
             case ALL -> issueRepository.findRelatedToUser(currentUserId, status, pageable);
         }).map(IssueResponse::from);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MyIssueSummaryResponse getMyIssueSummary() {
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+        LocalDate today = LocalDate.now();
+        List<IssueStatus> closedStatuses = List.of(IssueStatus.RESOLVED, IssueStatus.CLOSED);
+
+        Map<IssueStatus, Long> statusCounts = new EnumMap<>(IssueStatus.class);
+        Arrays.stream(IssueStatus.values())
+                .forEach(status -> statusCounts.put(
+                        status,
+                        issueRepository.countRelatedToUserByStatus(currentUserId, status)
+                ));
+
+        return new MyIssueSummaryResponse(
+                issueRepository.countRelatedToUser(currentUserId),
+                issueRepository.countByAssigneeId(currentUserId),
+                issueRepository.countByReporterId(currentUserId),
+                issueRepository.countOverdueRelatedToUser(currentUserId, today, closedStatuses),
+                issueRepository.countDueSoonRelatedToUser(currentUserId, today, today.plusDays(7), closedStatuses),
+                statusCounts
+        );
     }
 
     @Override
@@ -207,6 +252,14 @@ public class IssueServiceImpl implements IssueService {
 
         return issueRepository.findByIdAndProjectId(issueId, projectId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ISSUE_NOT_FOUND));
+    }
+
+    private String normalizeKeyword(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return null;
+        }
+
+        return keyword.trim();
     }
 
     private void validateAssignee(Project project, Long assigneeId) {

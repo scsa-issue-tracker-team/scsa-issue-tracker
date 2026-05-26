@@ -49,6 +49,8 @@ public class Notification extends BaseTimeEntity {
 
     private LocalDateTime readAt;
 
+    private LocalDateTime deletedAt;
+
     private Notification(
             Long receiverId,
             Long actorId,
@@ -82,6 +84,12 @@ public class Notification extends BaseTimeEntity {
     public void markAsRead() {
         if (readAt == null) {
             readAt = LocalDateTime.now();
+        }
+    }
+
+    public void delete() {
+        if (deletedAt == null) {
+            deletedAt = LocalDateTime.now();
         }
     }
 }

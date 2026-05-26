@@ -64,4 +64,8 @@ public class ProjectMember extends BaseTimeEntity {
     public static ProjectMember member(Project project, User user) {
         return new ProjectMember(project, user, ProjectMemberRole.MEMBER);
     }
+
+    public void changeRole(ProjectMemberRole role) {
+        this.role = role;
+    }
 }

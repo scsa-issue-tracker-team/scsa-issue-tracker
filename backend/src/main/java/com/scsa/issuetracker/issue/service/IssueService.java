@@ -8,6 +8,8 @@ import com.scsa.issuetracker.issue.dto.IssueCreateRequest;
 import com.scsa.issuetracker.issue.dto.IssueResponse;
 import com.scsa.issuetracker.issue.dto.IssueStatusUpdateRequest;
 import com.scsa.issuetracker.issue.dto.IssueUpdateRequest;
+import com.scsa.issuetracker.issue.dto.MyIssueSummaryResponse;
+import java.time.LocalDate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -20,10 +22,17 @@ public interface IssueService {
             IssueStatus status,
             IssueType issueType,
             IssuePriority priority,
+            Long assigneeId,
+            Long reporterId,
+            LocalDate dueDateFrom,
+            LocalDate dueDateTo,
+            String keyword,
             Pageable pageable
     );
 
     Page<IssueResponse> getMyIssues(MyIssueRole role, IssueStatus status, Pageable pageable);
+
+    MyIssueSummaryResponse getMyIssueSummary();
 
     IssueResponse getIssue(Long projectId, Long issueId);
 

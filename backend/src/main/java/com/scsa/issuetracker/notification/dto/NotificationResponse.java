@@ -21,6 +21,7 @@ public class NotificationResponse {
     private boolean read;
     private LocalDateTime readAt;
     private LocalDateTime createdAt;
+    private LocalDateTime deletedAt;
 
     public static NotificationResponse from(Notification notification) {
         return NotificationResponse.builder()
@@ -35,6 +36,7 @@ public class NotificationResponse {
                 .read(notification.getReadAt() != null)
                 .readAt(notification.getReadAt())
                 .createdAt(notification.getCreatedAt())
+                .deletedAt(notification.getDeletedAt())
                 .build();
     }
 }

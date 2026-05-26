@@ -6,6 +6,7 @@ import com.scsa.issuetracker.global.security.SecurityUtil;
 import com.scsa.issuetracker.notification.dto.NotificationPageResponse;
 import com.scsa.issuetracker.notification.dto.NotificationResponse;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -22,29 +23,36 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final EntityManager entityManager;
 
-    public NotificationPageResponse getMyNotifications(boolean unreadOnly, int limit, int offset) {
+    public NotificationPageResponse getMyNotifications(
+            Boolean read,
+            boolean unreadOnly,
+            NotificationType notificationType,
+            Long projectId,
+            int limit,
+            int offset
+    ) {
         Long currentUserId = SecurityUtil.getCurrentUserId();
-        String unreadCondition = unreadOnly ? "and notification.readAt is null" : "";
+        Boolean selectedRead = unreadOnly ? Boolean.FALSE : read;
+        StringBuilder query = new StringBuilder("""
+                select notification
+                from Notification notification
+                where notification.receiverId = :receiverId
+                  and notification.deletedAt is null
+                """);
 
-        List<Notification> notifications = entityManager.createQuery(
-                        """
-                                select notification
-                                from Notification notification
-                                where notification.receiverId = :receiverId
-                                %s
-                                order by notification.createdAt desc
-                                """.formatted(unreadCondition),
-                        Notification.class
-                )
-                .setParameter("receiverId", currentUserId)
+        appendFilters(query, selectedRead, notificationType, projectId);
+        query.append(" order by notification.createdAt desc");
+
+        TypedQuery<Notification> notificationQuery = entityManager.createQuery(query.toString(), Notification.class);
+        bindFilters(notificationQuery, currentUserId, notificationType, projectId);
+
+        List<Notification> notifications = notificationQuery
                 .setFirstResult(offset)
                 .setMaxResults(limit)
                 .getResultList();
 
-        long total = unreadOnly
-                ? notificationRepository.countByReceiverIdAndReadAtIsNull(currentUserId)
-                : notificationRepository.countByReceiverId(currentUserId);
-        long unreadTotal = notificationRepository.countByReceiverIdAndReadAtIsNull(currentUserId);
+        long total = countMyNotifications(currentUserId, selectedRead, notificationType, projectId);
+        long unreadTotal = notificationRepository.countByReceiverIdAndReadAtIsNullAndDeletedAtIsNull(currentUserId);
 
         return NotificationPageResponse.of(
                 notifications.stream().map(NotificationResponse::from).toList(),
@@ -66,8 +74,17 @@ public class NotificationService {
     @Transactional
     public void markAllAsRead() {
         Long currentUserId = SecurityUtil.getCurrentUserId();
-        notificationRepository.findByReceiverIdAndReadAtIsNull(currentUserId)
+        notificationRepository.findByReceiverIdAndReadAtIsNullAndDeletedAtIsNull(currentUserId)
                 .forEach(Notification::markAsRead);
+    }
+
+    @Transactional
+    public void deleteNotification(Long notificationId) {
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+        Notification notification = notificationRepository.findByIdAndReceiverId(notificationId, currentUserId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOTIFICATION_NOT_FOUND));
+
+        notification.delete();
     }
 
     @Transactional
@@ -203,5 +220,61 @@ public class NotificationService {
                 message
         );
         notificationRepository.save(notification);
+    }
+
+    private long countMyNotifications(
+            Long receiverId,
+            Boolean read,
+            NotificationType notificationType,
+            Long projectId
+    ) {
+        StringBuilder query = new StringBuilder("""
+                select count(notification)
+                from Notification notification
+                where notification.receiverId = :receiverId
+                  and notification.deletedAt is null
+                """);
+
+        appendFilters(query, read, notificationType, projectId);
+
+        TypedQuery<Long> countQuery = entityManager.createQuery(query.toString(), Long.class);
+        bindFilters(countQuery, receiverId, notificationType, projectId);
+
+        return countQuery.getSingleResult();
+    }
+
+    private void appendFilters(
+            StringBuilder query,
+            Boolean read,
+            NotificationType notificationType,
+            Long projectId
+    ) {
+        if (read != null && read) {
+            query.append(" and notification.readAt is not null");
+        }
+        if (read != null && !read) {
+            query.append(" and notification.readAt is null");
+        }
+        if (notificationType != null) {
+            query.append(" and notification.notificationType = :notificationType");
+        }
+        if (projectId != null) {
+            query.append(" and notification.projectId = :projectId");
+        }
+    }
+
+    private void bindFilters(
+            TypedQuery<?> query,
+            Long receiverId,
+            NotificationType notificationType,
+            Long projectId
+    ) {
+        query.setParameter("receiverId", receiverId);
+        if (notificationType != null) {
+            query.setParameter("notificationType", notificationType);
+        }
+        if (projectId != null) {
+            query.setParameter("projectId", projectId);
+        }
     }
 }
