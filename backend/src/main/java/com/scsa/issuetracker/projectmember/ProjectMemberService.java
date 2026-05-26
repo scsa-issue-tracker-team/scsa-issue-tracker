@@ -5,6 +5,7 @@ import com.scsa.issuetracker.global.exception.ErrorCode;
 import com.scsa.issuetracker.project.entity.Project;
 import com.scsa.issuetracker.projectmember.dto.ProjectMemberAddRequest;
 import com.scsa.issuetracker.projectmember.dto.ProjectMemberResponse;
+import com.scsa.issuetracker.projectmember.dto.ProjectMemberRoleUpdateRequest;
 import com.scsa.issuetracker.user.entity.User;
 import com.scsa.issuetracker.user.repository.UserRepository;
 import java.util.List;
@@ -44,6 +45,24 @@ public class ProjectMemberService {
                 .stream()
                 .map(ProjectMemberResponse::from)
                 .toList();
+    }
+
+    @Transactional
+    public ProjectMemberResponse updateMemberRole(
+            Long projectId,
+            Long userId,
+            ProjectMemberRoleUpdateRequest request
+    ) {
+        Project project = projectAccessValidator.getOwnerProject(projectId);
+        ProjectMember member = projectMemberRepository.findByProject_IdAndUser_Id(projectId, userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_MEMBER_NOT_FOUND));
+
+        if (project.getCreatedById().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.PROJECT_CREATOR_ROLE_CANNOT_BE_CHANGED);
+        }
+
+        member.changeRole(request.role());
+        return ProjectMemberResponse.from(member);
     }
 
     @Transactional

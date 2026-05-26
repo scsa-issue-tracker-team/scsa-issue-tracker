@@ -11,9 +11,11 @@ import com.scsa.issuetracker.issue.service.IssueService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -41,9 +43,29 @@ public class IssueController {
             @RequestParam(required = false) IssueStatus status,
             @RequestParam(required = false) IssueType issueType,
             @RequestParam(required = false) IssuePriority priority,
+            @RequestParam(required = false) Long assigneeId,
+            @RequestParam(required = false) Long reporterId,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate dueDateFrom,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate dueDateTo,
+            @RequestParam(required = false) String keyword,
             Pageable pageable
     ) {
-        return ResponseEntity.ok(issueService.getIssues(projectId, status, issueType, priority, pageable));
+        return ResponseEntity.ok(issueService.getIssues(
+                projectId,
+                status,
+                issueType,
+                priority,
+                assigneeId,
+                reporterId,
+                dueDateFrom,
+                dueDateTo,
+                keyword,
+                pageable
+        ));
     }
 
     @Operation(summary = "Create issue")
