@@ -337,7 +337,7 @@ function IssueRow({ issue, byId, onOpen }) {
   const ds = dueState(issue.dueDate, issue.status);
   return (
     <li>
-      <button className="issue-row" onClick={() => onOpen(issue)}>
+      <button className={`issue-row ${issue.priority === "CRITICAL" ? "crit" : ""}`} onClick={() => onOpen(issue)}>
         <div className="issue-row-top">
           <div className="issue-row-main">
             <span className="issue-key">#{issue.id}</span>

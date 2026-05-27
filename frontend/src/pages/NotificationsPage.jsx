@@ -9,7 +9,7 @@ import { Loading, ErrorState, EmptyState } from "../components/StateViews.jsx";
 import { useUserDirectory, nameOf } from "../auth/UserDirectoryContext.jsx";
 import { useNotifications } from "../components/NotificationContext.jsx";
 import { useToast } from "../components/ToastContext.jsx";
-import { NOTIFICATION_TYPE, notificationMeta } from "../lib/issueMeta.js";
+import { NOTIFICATION_TYPE, notificationMeta, humanizeMessage } from "../lib/issueMeta.js";
 import { timeAgo } from "../lib/format.js";
 
 export default function NotificationsPage() {
@@ -125,7 +125,7 @@ function NotifRow({ notif, byId, navigate, onChanged, toast }) {
           <span className="notif-type-label">{meta.label}</span>
           {!notif.read && <span className="unread-dot" aria-label="안읽음" />}
         </div>
-        <p className="notif-msg">{notif.message || meta.label}</p>
+        <p className="notif-msg">{humanizeMessage(notif.message) || meta.label}</p>
         <span className="muted small">
           {nameOf(byId, notif.actorId)} · {timeAgo(notif.createdAt)}
           {notif.projectId && notif.issueId && " · 이동하려면 클릭"}
