@@ -18,12 +18,24 @@ export function Loading({ label = "불러오는 중..." }) {
   );
 }
 
+// 빈 상태용 미니 SVG 일러스트 (이모지보다 정성 있는 느낌)
+function EmptyIllustration() {
+  return (
+    <svg className="empty-illust" viewBox="0 0 120 96" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      <rect x="22" y="20" width="76" height="60" rx="8" fill="var(--bg-elev-2)" stroke="var(--border)" strokeWidth="2"/>
+      <rect x="34" y="34" width="40" height="6" rx="3" fill="var(--border-strong)"/>
+      <rect x="34" y="46" width="52" height="5" rx="2.5" fill="var(--border)"/>
+      <rect x="34" y="56" width="30" height="5" rx="2.5" fill="var(--border)"/>
+      <circle cx="92" cy="68" r="16" fill="var(--primary-soft)" stroke="var(--primary)" strokeWidth="2"/>
+      <path d="M92 61v14M85 68h14" stroke="var(--primary)" strokeWidth="2.5" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
 export function EmptyState({ title, description, action }) {
   return (
     <div className="state-block">
-      <div className="state-emoji" aria-hidden>
-        🗂️
-      </div>
+      <EmptyIllustration />
       <p className="state-title">{title}</p>
       {description && <p className="muted">{description}</p>}
       {action}

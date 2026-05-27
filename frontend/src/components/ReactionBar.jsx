@@ -25,17 +25,37 @@ export default function ReactionBar({ fetchReactions, addReaction, removeReactio
 
   const countOf = (type) => reactions.find((r) => r.reactionType === type);
 
+  // 로컬에서 토글된 반응 배열을 계산 (옵티미스틱 갱신용)
+  const applyToggle = (list, type) => {
+    const existing = list.find((r) => r.reactionType === type);
+    if (existing) {
+      const delta = existing.reactedByMe ? -1 : 1;
+      return list
+        .map((r) => r.reactionType === type
+          ? { ...r, count: r.count + delta, reactedByMe: !r.reactedByMe }
+          : r)
+        .filter((r) => r.count > 0 || r.reactedByMe);
+    }
+    // 새 반응 추가
+    return [...list, { reactionType: type, count: 1, reactedByMe: true }];
+  };
+
   const toggle = async (type) => {
     const existing = countOf(type);
+    const prev = reactions; // 롤백용 스냅샷
+    // 1) 즉시 화면 반영 (옵티미스틱)
+    setReactions((cur) => applyToggle(cur, type));
+    setPicker(false);
     setBusy(type);
     try {
+      // 2) 서버 반영 후 정답으로 동기화
       const res = existing?.reactedByMe
         ? await removeReaction(type)
         : await addReaction(type);
-      setReactions(res?.reactions ?? []);
-      setPicker(false);
+      if (res?.reactions) setReactions(res.reactions);
     } catch {
-      /* 무시 — 서버 거부 시 상태 유지 */
+      // 3) 실패 시 롤백
+      setReactions(prev);
     } finally {
       setBusy(null);
     }
@@ -54,7 +74,6 @@ export default function ReactionBar({ fetchReactions, addReaction, removeReactio
             key={r.reactionType}
             className={`reaction-chip ${r.reactedByMe ? "reacted" : ""}`}
             onClick={() => toggle(r.reactionType)}
-            disabled={busy === r.reactionType}
             title={meta.label}
           >
             <span aria-hidden>{meta.emoji}</span>
@@ -79,7 +98,6 @@ export default function ReactionBar({ fetchReactions, addReaction, removeReactio
                 key={rt.value}
                 className={`reaction-pick ${countOf(rt.value)?.reactedByMe ? "reacted" : ""}`}
                 onClick={() => toggle(rt.value)}
-                disabled={busy === rt.value}
                 title={rt.label}
                 aria-label={rt.label}
               >
