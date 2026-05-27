@@ -10,6 +10,7 @@ import Badge from "../components/Badge.jsx";
 import ReactionBar from "../components/ReactionBar.jsx";
 import ActivityTimeline from "../components/ActivityTimeline.jsx";
 import CommentSection from "../components/CommentSection.jsx";
+import Markdown from "../components/Markdown.jsx";
 import { ISSUE_TYPE, ISSUE_STATUS, ISSUE_PRIORITY, typeMeta, statusMeta, priorityMeta } from "../lib/issueMeta.js";
 import { formatDateTime, timeAgo, formatDueDate, dueState, dueLabel, todayISO } from "../lib/format.js";
 import { useProjectMembers } from "../hooks/useProjectMembers.js";
@@ -188,7 +189,7 @@ function IssueView({ issue, projectId, byId, onEdit, onDeleted, onStatusChanged 
       )}
 
       <div className="issue-detail-body">
-        {issue.content ? issue.content : <span className="muted">내용이 없습니다.</span>}
+        <Markdown>{issue.content}</Markdown>
       </div>
 
       <ReactionBar
