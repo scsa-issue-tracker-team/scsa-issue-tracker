@@ -12,7 +12,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const toast = useToast();
-  const from = location.state?.from?.pathname ?? "/projects";
+  const from = location.state?.from?.pathname ?? "/dashboard";
 
   const loginAsync = useAsync(login);
   const signupAsync = useAsync(signupApi);
