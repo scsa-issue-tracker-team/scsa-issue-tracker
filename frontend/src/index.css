@@ -1064,3 +1064,84 @@ a { color: inherit; text-decoration: none; }
   border-color: var(--primary);
   box-shadow: 0 0 0 3px var(--ring);
 }
+
+/* ============================================================
+   마크다운 렌더
+   ============================================================ */
+.markdown { line-height: 1.7; font-size: 14.5px; word-break: break-word; }
+.markdown > *:first-child { margin-top: 0; }
+.markdown > *:last-child { margin-bottom: 0; }
+.markdown p { margin: 0 0 10px; }
+.markdown h1, .markdown h2, .markdown h3, .markdown h4 { margin: 18px 0 8px; line-height: 1.3; }
+.markdown h1 { font-size: 20px; } .markdown h2 { font-size: 17px; } .markdown h3 { font-size: 15px; }
+.markdown ul, .markdown ol { margin: 0 0 10px; padding-left: 22px; }
+.markdown li { margin: 3px 0; }
+.markdown a { color: var(--primary); text-decoration: underline; text-underline-offset: 2px; }
+.markdown a:hover { color: var(--primary-hover); }
+.markdown code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 0.88em;
+  background: var(--bg-sunken); padding: 2px 6px; border-radius: 5px;
+}
+.markdown pre {
+  background: var(--bg-sunken); border: 1px solid var(--border); border-radius: var(--r-sm);
+  padding: 13px 15px; overflow-x: auto; margin: 0 0 12px;
+}
+.markdown pre code { background: none; padding: 0; font-size: 13px; line-height: 1.6; }
+.markdown blockquote {
+  margin: 0 0 12px; padding: 4px 16px; border-left: 3px solid var(--border-strong);
+  color: var(--text-dim);
+}
+.markdown hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+.markdown table { border-collapse: collapse; width: 100%; margin: 0 0 12px; font-size: 13.5px; }
+.markdown th, .markdown td { border: 1px solid var(--border); padding: 7px 11px; text-align: left; }
+.markdown th { background: var(--bg-sunken); font-weight: 650; }
+.markdown img { max-width: 100%; border-radius: var(--r-sm); }
+
+/* 프로젝트 카드 미니 통계 */
+.project-stats {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 9px 0; margin-top: 2px; border-top: 1px solid var(--border);
+  font-size: 12.5px; color: var(--text-dim);
+}
+.pstat { display: inline-flex; align-items: center; gap: 3px; }
+.pstat strong { color: var(--text); font-weight: 700; }
+.pstat-dot { width: 7px; height: 7px; border-radius: 50%; }
+.pstat-dot.status-open { background: var(--primary); }
+.pstat-dot.status-progress { background: var(--warning); }
+
+/* ============================================================
+   모바일 보정 (안전 범위)
+   ============================================================ */
+@media (max-width: 939px) {
+  /* 이슈 상세: 모바일에선 메타 요약을 본문 위로 (먼저 상태 파악) */
+  .issue-detail-layout { display: flex; flex-direction: column; }
+  .issue-meta-side { order: -1; }
+  .meta-card { padding: 4px 16px; }
+}
+
+@media (max-width: 600px) {
+  /* 칸반: 모바일에선 가로 스크롤로 칼럼 훑기 */
+  .board {
+    grid-template-columns: none; grid-auto-flow: column;
+    grid-auto-columns: 80%; overflow-x: auto; gap: 10px;
+    scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+  }
+  .board-col { scroll-snap-align: start; }
+
+  /* 필터바: 셀렉트들이 좁은 화면에서 줄바꿈되며 꽉 차게 */
+  .filter-bar { gap: 8px; }
+  .filter-select { flex: 1 1 calc(50% - 4px); }
+  .filter-select select { width: 100%; }
+  .view-toggle { flex: 1 1 100%; justify-content: center; }
+
+  /* 이슈 행 메타 뱃지가 좁을 때 줄바꿈 자연스럽게 */
+  .issue-row-top { flex-direction: column; align-items: flex-start; gap: 8px; }
+
+  /* 커맨드 팔레트 모바일 위치 */
+  .cmdk-overlay { padding-top: 8vh; padding-left: 12px; padding-right: 12px; }
+
+  /* 대시보드 도넛 모바일에선 세로 정렬 */
+  .donut-wrap { flex-direction: column; align-items: stretch; gap: 18px; }
+  .donut-chart { align-self: center; }
+}
