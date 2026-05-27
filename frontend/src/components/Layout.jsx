@@ -1,4 +1,5 @@
 import { Outlet, useNavigate, Link, NavLink } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useTheme } from "./ThemeContext.jsx";
 import { useNotifications } from "./NotificationContext.jsx";
@@ -9,6 +10,14 @@ export default function Layout() {
   const { theme, toggle } = useTheme();
   const { unreadTotal } = useNotifications();
   const navigate = useNavigate();
+  const [scrolled, setScrolled] = useState(false);
+
+  // 스크롤 시 헤더에 그림자 (작은 디테일이 살아있는 느낌을 준다)
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 4);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -20,7 +29,7 @@ export default function Layout() {
 
   return (
     <div className="app">
-      <header className="app-header">
+      <header className={`app-header ${scrolled ? "scrolled" : ""}`}>
         <div className="header-left">
           <Link to="/dashboard" className="brand">
             <span className="brand-mark">IT</span>

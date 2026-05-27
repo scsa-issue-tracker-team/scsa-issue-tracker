@@ -3,6 +3,7 @@ import { useFetch } from "../hooks/useAsync.js";
 import { useUserDirectory, nameOf } from "../auth/UserDirectoryContext.jsx";
 import { Loading, EmptyState } from "./StateViews.jsx";
 import { formatDateTime } from "../lib/format.js";
+import { humanizeMessage } from "../lib/issueMeta.js";
 
 const ACTIVITY_META = {
   ISSUE_CREATED: { icon: "✨", label: "이슈 생성" },
@@ -35,7 +36,7 @@ export default function ActivityTimeline({ projectId, issueId }) {
                 <div className="activity-body">
                   <p className="activity-msg">
                     <strong>{nameOf(byId, a.actorId)}</strong>{" "}
-                    {a.message || meta.label}
+                    {humanizeMessage(a.message) || meta.label}
                   </p>
                   <span className="muted small">{formatDateTime(a.createdAt)}</span>
                 </div>

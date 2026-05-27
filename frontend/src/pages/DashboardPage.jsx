@@ -8,7 +8,7 @@ import Badge from "../components/Badge.jsx";
 import StatusDonut from "../components/StatusDonut.jsx";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useUserDirectory, nameOf } from "../auth/UserDirectoryContext.jsx";
-import { ISSUE_STATUS, statusMeta, typeMeta, priorityMeta, notificationMeta } from "../lib/issueMeta.js";
+import { ISSUE_STATUS, statusMeta, typeMeta, priorityMeta, notificationMeta, humanizeMessage } from "../lib/issueMeta.js";
 import { formatDueDate, dueState, dueLabel, timeAgo } from "../lib/format.js";
 
 // 0 -> target 카운트업 (대시보드 지표에 생동감)
@@ -188,7 +188,7 @@ function MiniNotifRow({ notif, onClick }) {
       <button className={`mini-notif ${notif.read ? "" : "unread"}`} onClick={onClick}>
         <span className="notif-icon" aria-hidden>{meta.icon}</span>
         <div className="mini-notif-body">
-          <span className="mini-notif-msg">{notif.message || meta.label}</span>
+          <span className="mini-notif-msg">{humanizeMessage(notif.message) || meta.label}</span>
           <span className="mini-notif-time muted small">
             {nameOf(byId, notif.actorId)} · {timeAgo(notif.createdAt)}
           </span>

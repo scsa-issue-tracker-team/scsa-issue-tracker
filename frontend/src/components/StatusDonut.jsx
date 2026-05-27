@@ -67,8 +67,8 @@ export default function StatusDonut({ statusCounts }) {
           ))}
         </svg>
         <div className="donut-center">
-          <span className="donut-pct">{donePct}%</span>
-          <span className="donut-sub muted small">완료</span>
+          <span className="donut-pct">{done}<span className="donut-pct-total">/{total}</span></span>
+          <span className="donut-sub muted small">완료 {donePct}%</span>
         </div>
       </div>
 
