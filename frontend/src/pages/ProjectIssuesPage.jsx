@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { getProject } from "../api/projects.js";
 import { listIssues, createIssue, updateIssueStatus } from "../api/issues.js";
@@ -36,6 +36,13 @@ export default function ProjectIssuesPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [membersOpen, setMembersOpen] = useState(false);
 
+  // 서버 데이터를 로컬에 미러링 — 보드 드래그 시 옵티미스틱 갱신을 위해.
+  // (훅은 early return보다 위에 있어야 한다 — Rules of Hooks)
+  const [localIssues, setLocalIssues] = useState([]);
+  useEffect(() => {
+    setLocalIssues(issuesQuery.data?.content ?? []);
+  }, [issuesQuery.data]);
+
   // 검색어 디바운스 (입력 멈추고 400ms 후 조회)
   const onSearchSubmit = (e) => { e.preventDefault(); setSearchTerm(keyword.trim()); };
 
@@ -50,7 +57,7 @@ export default function ProjectIssuesPage() {
   }
 
   const project = projectQuery.data;
-  const issues = issuesQuery.data?.content ?? [];
+  const issues = localIssues;
   const total = issuesQuery.data?.totalElements ?? 0;
   const hasFilter = filters.status || filters.issueType || filters.priority || filters.assigneeId || searchTerm;
 
@@ -63,14 +70,16 @@ export default function ProjectIssuesPage() {
   const openRow = (issue) =>
     navigate(`/projects/${projectId}/issues/${issue.id}`);
 
-  // 보드 뷰에서 카드의 상태 변경 (낙관적 갱신 대신 재조회로 단순하게)
+  // 보드 뷰 상태 변경 — 옵티미스틱: 즉시 카드 이동 후 서버 반영, 실패 시 복구
   const changeStatus = async (issue, nextStatus) => {
     if (nextStatus === issue.status) return;
+    const snapshot = localIssues;
+    setLocalIssues((cur) => cur.map((i) => i.id === issue.id ? { ...i, status: nextStatus } : i));
     try {
       await updateIssueStatus(projectId, issue.id, nextStatus);
       toast.success(`#${issue.id} → ${statusMeta(nextStatus).label}`);
-      issuesQuery.reload();
     } catch (e) {
+      setLocalIssues(snapshot); // 롤백
       toast.error(e?.message || "상태 변경 실패");
     }
   };

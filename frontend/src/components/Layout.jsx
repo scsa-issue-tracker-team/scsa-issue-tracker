@@ -2,6 +2,7 @@ import { Outlet, useNavigate, Link, NavLink } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useTheme } from "./ThemeContext.jsx";
 import { useNotifications } from "./NotificationContext.jsx";
+import CommandPalette from "./CommandPalette.jsx";
 
 export default function Layout() {
   const { currentUser, logout } = useAuth();
@@ -13,6 +14,9 @@ export default function Layout() {
     logout();
     navigate("/login", { replace: true });
   };
+
+  // ⌘K 팔레트는 자체 단축키로도 열리지만, 헤더 버튼으로도 연다 (커스텀 이벤트)
+  const openPalette = () => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }));
 
   return (
     <div className="app">
@@ -37,6 +41,11 @@ export default function Layout() {
         </div>
 
         <div className="header-right">
+          <button className="cmdk-trigger" onClick={openPalette} title="명령 팔레트 (Ctrl/⌘ K)">
+            <span aria-hidden>⌕</span>
+            <span className="cmdk-trigger-text">검색</span>
+            <kbd>⌘K</kbd>
+          </button>
           <button
             className="icon-btn theme-toggle"
             onClick={toggle}
@@ -60,6 +69,8 @@ export default function Layout() {
       <main className="app-main">
         <Outlet />
       </main>
+
+      <CommandPalette />
     </div>
   );
 }
