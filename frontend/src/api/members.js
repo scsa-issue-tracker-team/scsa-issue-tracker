@@ -18,3 +18,9 @@ export function addMember(projectId, { username }) {
 export function removeMember(projectId, userId) {
   return api.delete(`/projects/${projectId}/members/${userId}`);
 }
+
+// PATCH /api/v1/projects/{projectId}/members/{userId}/role  body: { role: 'OWNER'|'MEMBER' }
+// 접근: OWNER만.
+export function updateMemberRole(projectId, userId, role) {
+  return api.patch(`/projects/${projectId}/members/${userId}/role`, { role });
+}

@@ -72,3 +72,44 @@ export function InlineError({ error }) {
   if (!error) return null;
   return <p className="inline-error">{error.message}</p>;
 }
+
+// 스켈레톤: 로딩 중 레이아웃을 유지하며 회색 깜빡임을 보여준다 (스피너보다 고급스럽고 안정적).
+export function Skeleton({ w = "100%", h = 14, r = 6, style }) {
+  return <span className="skeleton" style={{ width: w, height: h, borderRadius: r, ...style }} aria-hidden />;
+}
+
+// 이슈 리스트용 스켈레톤 행 n개
+export function IssueListSkeleton({ rows = 4 }) {
+  return (
+    <ul className="issue-list" aria-busy="true" aria-label="이슈 불러오는 중">
+      {Array.from({ length: rows }).map((_, i) => (
+        <li key={i}>
+          <div className="issue-row skeleton-row">
+            <div className="issue-row-top">
+              <Skeleton w="55%" h={15} />
+              <Skeleton w={120} h={18} r={999} />
+            </div>
+            <Skeleton w="80%" h={12} />
+            <Skeleton w="40%" h={11} />
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+// 카드 그리드용 스켈레톤
+export function CardGridSkeleton({ count = 6 }) {
+  return (
+    <div className="card-grid" aria-busy="true">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="project-card skeleton-row">
+          <Skeleton w="30%" h={11} />
+          <Skeleton w="65%" h={18} />
+          <Skeleton w="100%" h={12} />
+          <Skeleton w="80%" h={12} />
+        </div>
+      ))}
+    </div>
+  );
+}

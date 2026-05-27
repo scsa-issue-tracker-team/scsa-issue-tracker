@@ -26,6 +26,25 @@ export const ISSUE_PRIORITY = [
   { value: "CRITICAL", label: "긴급", tone: "priority-critical" },
 ];
 
+// 반응 타입 (이모지 + 라벨). 백엔드 ReactionType과 1:1.
+export const REACTION_TYPE = [
+  { value: "THUMBS_UP", emoji: "👍", label: "좋아요" },
+  { value: "HEART", emoji: "❤️", label: "하트" },
+  { value: "EYES", emoji: "👀", label: "주목" },
+  { value: "ROCKET", emoji: "🚀", label: "로켓" },
+  { value: "CHECK", emoji: "✅", label: "확인" },
+  { value: "LAUGH", emoji: "😄", label: "웃음" },
+];
+
+// 알림 타입 라벨/아이콘. 백엔드 NotificationType과 1:1.
+export const NOTIFICATION_TYPE = [
+  { value: "ISSUE_ASSIGNED", label: "이슈 배정", icon: "📌", tone: "type-feature" },
+  { value: "ISSUE_STATUS_CHANGED", label: "상태 변경", icon: "🔄", tone: "status-progress" },
+  { value: "COMMENT_CREATED", label: "새 댓글", icon: "💬", tone: "type-task" },
+  { value: "REPLY_CREATED", label: "새 답글", icon: "↩️", tone: "type-task" },
+  { value: "REACTION_ADDED", label: "반응", icon: "😀", tone: "type-request" },
+];
+
 function lookup(list, value) {
   return list.find((item) => item.value === value) ?? { value, label: value, tone: "" };
 }
@@ -33,3 +52,5 @@ function lookup(list, value) {
 export const typeMeta = (v) => lookup(ISSUE_TYPE, v);
 export const statusMeta = (v) => lookup(ISSUE_STATUS, v);
 export const priorityMeta = (v) => lookup(ISSUE_PRIORITY, v);
+export const reactionMeta = (v) => REACTION_TYPE.find((r) => r.value === v) ?? { value: v, emoji: "•", label: v };
+export const notificationMeta = (v) => lookup(NOTIFICATION_TYPE, v);
