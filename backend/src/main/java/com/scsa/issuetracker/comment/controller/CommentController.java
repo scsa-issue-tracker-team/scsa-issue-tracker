@@ -3,6 +3,7 @@ package com.scsa.issuetracker.comment.controller;
 import com.scsa.issuetracker.comment.dto.CommentCreateRequest;
 import com.scsa.issuetracker.comment.dto.CommentPageResponse;
 import com.scsa.issuetracker.comment.dto.CommentResponse;
+import com.scsa.issuetracker.comment.dto.CommentUpdateRequest;
 import com.scsa.issuetracker.comment.service.CommentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -45,6 +46,28 @@ public class CommentController {
         return ResponseEntity.ok(commentService.getList(projectId, issueId, limit, offset));
     }
 
+    @Operation(summary = "댓글 수정", description = "내가 작성한 댓글을 수정합니다.")
+    @PatchMapping("/{commentId}")
+    public ResponseEntity<CommentResponse> update(
+            @PathVariable Long projectId,
+            @PathVariable Long issueId,
+            @PathVariable Long commentId,
+            @Valid @RequestBody CommentUpdateRequest request
+    ) {
+        return ResponseEntity.ok(commentService.update(projectId, issueId, commentId, request));
+    }
+
+    @Operation(summary = "댓글 삭제", description = "내가 작성한 댓글을 삭제 상태로 변경합니다.")
+    @DeleteMapping("/{commentId}")
+    public ResponseEntity<Void> delete(
+            @PathVariable Long projectId,
+            @PathVariable Long issueId,
+            @PathVariable Long commentId
+    ) {
+        commentService.delete(projectId, issueId, commentId);
+        return ResponseEntity.noContent().build();
+    }
+
     @Operation(summary = "대댓글 작성", description = "댓글에 답글을 작성합니다.")
     @PostMapping("/{commentId}/replies")
     public ResponseEntity<CommentResponse> createReply(
@@ -68,5 +91,29 @@ public class CommentController {
             @RequestParam(defaultValue = "0") @Min(0) int offset
     ) {
         return ResponseEntity.ok(commentService.getReplies(projectId, issueId, commentId, limit, offset));
+    }
+
+    @Operation(summary = "대댓글 수정", description = "내가 작성한 대댓글을 수정합니다.")
+    @PatchMapping("/{commentId}/replies/{replyId}")
+    public ResponseEntity<CommentResponse> updateReply(
+            @PathVariable Long projectId,
+            @PathVariable Long issueId,
+            @PathVariable Long commentId,
+            @PathVariable Long replyId,
+            @Valid @RequestBody CommentUpdateRequest request
+    ) {
+        return ResponseEntity.ok(commentService.updateReply(projectId, issueId, commentId, replyId, request));
+    }
+
+    @Operation(summary = "대댓글 삭제", description = "내가 작성한 대댓글을 삭제 상태로 변경합니다.")
+    @DeleteMapping("/{commentId}/replies/{replyId}")
+    public ResponseEntity<Void> deleteReply(
+            @PathVariable Long projectId,
+            @PathVariable Long issueId,
+            @PathVariable Long commentId,
+            @PathVariable Long replyId
+    ) {
+        commentService.deleteReply(projectId, issueId, commentId, replyId);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -3,6 +3,7 @@ package com.scsa.issuetracker.issue.controller;
 import com.scsa.issuetracker.issue.domain.IssueStatus;
 import com.scsa.issuetracker.issue.domain.MyIssueRole;
 import com.scsa.issuetracker.issue.dto.IssueResponse;
+import com.scsa.issuetracker.issue.dto.MyIssueSummaryResponse;
 import com.scsa.issuetracker.issue.service.IssueService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -29,5 +30,11 @@ public class MyIssueController {
             Pageable pageable
     ) {
         return ResponseEntity.ok(issueService.getMyIssues(role, status, pageable));
+    }
+
+    @Operation(summary = "My issue summary")
+    @GetMapping("/my/summary")
+    public ResponseEntity<MyIssueSummaryResponse> getMyIssueSummary() {
+        return ResponseEntity.ok(issueService.getMyIssueSummary());
     }
 }

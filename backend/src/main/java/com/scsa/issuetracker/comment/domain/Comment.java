@@ -38,4 +38,14 @@ public class Comment extends BaseTimeEntity {
 
     @Column(columnDefinition = "CLOB", nullable = false)
     private String content;
+
+    private boolean deleted;
+
+    public void updateContent(String content) {
+        this.content = content;
+    }
+
+    public void delete() {
+        this.deleted = true;
+    }
 }
