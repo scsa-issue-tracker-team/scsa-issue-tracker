@@ -411,17 +411,12 @@ a { color: inherit; text-decoration: none; }
   background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
   border-radius: 8px; font-size: 14px; color: var(--brand-300);
 }
-/* 은은한 액센트 — 거의 안 움직이는 숨쉬기 */
+/* 은은한 정적 액센트 — 움직임 제거. 디자이너는 고존 아니면 배경을 안 움직이게 한다. */
 .auth-hero-glow {
-  position: absolute; width: 520px; height: 520px; border-radius: 50%;
-  bottom: -220px; right: -180px;
-  background: radial-gradient(circle, rgba(91,108,255,0.22), transparent 65%);
-  filter: blur(60px); animation: floatGlow 24s ease-in-out infinite alternate;
-  pointer-events: none;
-}
-@keyframes floatGlow {
-  from { transform: translate(0,0) scale(1); opacity: 0.85; }
-  to { transform: translate(-10px,-8px) scale(1.04); opacity: 1; }
+  position: absolute; width: 600px; height: 600px; border-radius: 50%;
+  bottom: -240px; right: -200px;
+  background: radial-gradient(circle, rgba(91,108,255,0.18), transparent 65%);
+  filter: blur(80px); pointer-events: none;
 }
 
 /* 우측 폼 */
@@ -1206,23 +1201,37 @@ a { color: inherit; text-decoration: none; }
 /* ============================================================
    우선순위 분포
    ============================================================ */
-.prio-breakdown { display: flex; flex-direction: column; gap: 14px; }
+.prio-breakdown { display: flex; flex-direction: column; gap: 18px; padding: 4px 0; }
 .prio-head { display: flex; align-items: baseline; justify-content: space-between; }
 .prio-title { font-size: 14px; font-weight: 650; }
-.prio-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-.prio-row { display: grid; grid-template-columns: 70px 1fr 28px; align-items: center; gap: 12px; }
-.prio-name { font-size: 13px; font-weight: 500; color: var(--text-dim); }
-.prio-track { height: 9px; background: var(--bg-sunken); border-radius: var(--r-full); overflow: hidden; }
+.prio-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 16px; }
+.prio-row { display: grid; grid-template-columns: 70px 1fr 32px; align-items: center; gap: 14px; }
+.prio-name { font-size: 13.5px; font-weight: 500; color: var(--text-dim); }
+.prio-track { height: 10px; background: var(--bg-sunken); border-radius: var(--r-full); overflow: hidden; }
 .prio-fill { display: block; height: 100%; border-radius: var(--r-full); transition: width 0.5s var(--ease); }
-.prio-count { font-size: 13px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+.prio-count { font-size: 14px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
 
 /* ============================================================
    마감 타임라인
    ============================================================ */
-.due-timeline { display: flex; flex-direction: column; gap: 14px; }
+.due-timeline { display: flex; flex-direction: column; gap: 18px; }
 .due-head { display: flex; align-items: baseline; justify-content: space-between; }
 .due-title { font-size: 14px; font-weight: 650; }
-.due-axis { padding: 12px 6px 6px; }
+
+/* KPI 줄 */
+.due-kpi {
+  display: flex; align-items: center; gap: 16px;
+  background: var(--bg-elev-2); border-radius: var(--r-md);
+  padding: 14px 18px;
+}
+.due-kpi-item { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.due-kpi-num { font-size: 26px; font-weight: 750; letter-spacing: -0.03em; line-height: 1; }
+.due-kpi-num.due-overdue-num { color: var(--danger-text); }
+.due-kpi-num.due-soon-num { color: var(--warning); }
+.due-kpi-label { font-size: 11.5px; color: var(--text-dim); font-weight: 600; }
+.due-kpi-divider { width: 1px; align-self: stretch; background: var(--border); }
+
+.due-axis { padding: 4px 6px; }
 .due-axis-labels { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 11.5px; color: var(--text-faint); }
 .due-axis-labels .today-label { font-weight: 700; color: var(--primary); }
 .due-axis-line {
@@ -1244,7 +1253,30 @@ a { color: inherit; text-decoration: none; }
 .due-dot.due-overdue { background: var(--danger); }
 .due-dot.due-soon { background: var(--warning); }
 .due-dot.due-normal { background: var(--primary); }
-.due-overflow { display: flex; justify-content: space-between; margin-top: 12px; }
+.due-overflow { display: flex; justify-content: space-between; margin-top: 10px; }
+
+/* 임박 이슈 목록 */
+.due-upcoming { display: flex; flex-direction: column; gap: 8px; }
+.due-upcoming-title { font-weight: 600; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+.due-upcoming-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.due-upcoming-row {
+  width: 100%; display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+  background: transparent; border: none; cursor: pointer; border-radius: var(--r-sm);
+  text-align: left; transition: background 0.13s var(--ease);
+}
+.due-upcoming-row:hover { background: var(--bg-elev-2); }
+.due-pill {
+  display: inline-flex; align-items: center; padding: 3px 9px; border-radius: var(--r-full);
+  font-size: 11.5px; font-weight: 700; flex-shrink: 0; min-width: 56px; justify-content: center;
+  background: var(--bg-sunken); color: var(--text-dim);
+}
+.due-pill.due-overdue { background: var(--danger-soft); color: var(--danger-text); }
+.due-pill.due-soon { background: var(--warning-soft); color: var(--warning); }
+.due-pill.due-normal { background: var(--primary-soft); color: var(--primary); }
+.due-upcoming-name {
+  flex: 1; font-size: 13.5px; font-weight: 500;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 
 /* ============================================================
    활동 히트맵 (GitHub 잔디 스타일)
@@ -1252,23 +1284,99 @@ a { color: inherit; text-decoration: none; }
 .heatmap { display: flex; flex-direction: column; gap: 12px; }
 .heatmap-head { display: flex; align-items: baseline; justify-content: space-between; }
 .heatmap-title { font-size: 14px; font-weight: 650; }
-.heatmap-grid { display: flex; gap: 3px; padding: 4px 0; overflow-x: auto; }
-.heatmap-col { display: flex; flex-direction: column; gap: 3px; flex-shrink: 0; }
+/* 칸이 카드 너비에 맞게 늘어나게 — 12주 그리드가 꿉 차도록 */
+.heatmap-grid { display: flex; gap: 4px; padding: 4px 0; width: 100%; }
+.heatmap-col { display: flex; flex-direction: column; gap: 4px; flex: 1 1 0; min-width: 0; }
 .heatmap-cell {
-  width: 13px; height: 13px; border-radius: 3px;
+  width: 100%; aspect-ratio: 1 / 1; border-radius: 4px;
   background: var(--bg-sunken); transition: transform 0.1s var(--ease);
-  display: inline-block;
+  display: block;
 }
-.heatmap-cell:hover { transform: scale(1.25); cursor: pointer; }
+.heatmap-cell:hover { transform: scale(1.25); cursor: pointer; z-index: 2; position: relative; }
 .heatmap-cell.level-0 { background: var(--bg-sunken); }
-.heatmap-cell.level-1 { background: rgba(91,108,255,0.25); }
-.heatmap-cell.level-2 { background: rgba(91,108,255,0.5); }
-.heatmap-cell.level-3 { background: rgba(91,108,255,0.75); }
+.heatmap-cell.level-1 { background: rgba(91,108,255,0.28); }
+.heatmap-cell.level-2 { background: rgba(91,108,255,0.55); }
+.heatmap-cell.level-3 { background: rgba(91,108,255,0.8); }
 .heatmap-cell.level-4 { background: var(--primary); }
 .heatmap-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 .heatmap-legend { display: inline-flex; align-items: center; gap: 4px; }
-.heatmap-legend .heatmap-cell { width: 10px; height: 10px; }
+.heatmap-legend .heatmap-cell { width: 11px; height: 11px; aspect-ratio: auto; flex: 0 0 11px; }
 .heatmap-skeleton {
-  height: 110px; background: var(--bg-sunken); border-radius: var(--r-sm);
+  height: 160px; background: var(--bg-sunken); border-radius: var(--r-sm);
   animation: shimmer 1.3s infinite;
+}
+
+/* ============================================================
+   마이크로 인터랙션 — 살아있는 느낌
+   ============================================================ */
+
+/* 뱃지 hover: 미세하게 떠오름 */
+.badge { transition: transform 0.12s var(--ease), box-shadow 0.15s var(--ease); }
+.badge:hover { transform: translateY(-1px); }
+
+/* 페이지 진입: 카드들이 시차 두고 올라옴 (stagger) */
+.page > * { animation: fadeUp 0.4s var(--ease) both; }
+.page > *:nth-child(1) { animation-delay: 0.02s; }
+.page > *:nth-child(2) { animation-delay: 0.08s; }
+.page > *:nth-child(3) { animation-delay: 0.14s; }
+.page > *:nth-child(4) { animation-delay: 0.2s; }
+.page > *:nth-child(5) { animation-delay: 0.26s; }
+.page > *:nth-child(6) { animation-delay: 0.32s; }
+
+/* 카드 그리드 안의 카드들도 stagger */
+.dashboard-grid > *,
+.card-grid > *,
+.metric-grid > * { animation: fadeUp 0.35s var(--ease) both; }
+.dashboard-grid > *:nth-child(2),
+.card-grid > *:nth-child(2),
+.metric-grid > *:nth-child(2) { animation-delay: 0.05s; }
+.metric-grid > *:nth-child(3) { animation-delay: 0.1s; }
+.metric-grid > *:nth-child(4) { animation-delay: 0.15s; }
+.card-grid > *:nth-child(3) { animation-delay: 0.1s; }
+.card-grid > *:nth-child(4) { animation-delay: 0.15s; }
+.card-grid > *:nth-child(5) { animation-delay: 0.2s; }
+.card-grid > *:nth-child(6) { animation-delay: 0.25s; }
+
+/* 이슈 리스트도 stagger */
+.issue-list > li { animation: fadeUp 0.3s var(--ease) both; }
+.issue-list > li:nth-child(2) { animation-delay: 0.04s; }
+.issue-list > li:nth-child(3) { animation-delay: 0.08s; }
+.issue-list > li:nth-child(4) { animation-delay: 0.12s; }
+.issue-list > li:nth-child(5) { animation-delay: 0.16s; }
+.issue-list > li:nth-child(6) { animation-delay: 0.2s; }
+.issue-list > li:nth-child(7) { animation-delay: 0.24s; }
+.issue-list > li:nth-child(8) { animation-delay: 0.28s; }
+
+/* 포커스 링 — 키보드 사용자만 보이게 (마우스 클릭엔 안 보임) */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ring);
+  border-radius: var(--r-xs);
+}
+/* 이미 border-radius 있는 곳은 자기 라운드 유지 */
+.btn:focus-visible,
+.icon-btn:focus-visible { border-radius: var(--r-sm); }
+.nav-link:focus-visible,
+.cmdk-trigger:focus-visible { border-radius: var(--r-sm); }
+.issue-row:focus-visible,
+.project-card:focus-visible,
+.dash-card:focus-visible,
+.board-card:focus-visible { border-radius: var(--r-md); }
+
+/* 메트릭 카드 hover: 살짝 떠오름 */
+.metric-card { transition: transform 0.13s var(--ease), box-shadow 0.15s var(--ease); }
+.metric-card:hover { transform: translateY(-2px); box-shadow: var(--sh-md); }
+
+/* 모션 줄이기 선호: 모든 진입 애니메이션 끄기 (기존 prefers-reduced-motion 보강) */
+@media (prefers-reduced-motion: reduce) {
+  .page > *,
+  .dashboard-grid > *,
+  .card-grid > *,
+  .metric-grid > *,
+  .issue-list > li { animation: none !important; }
 }
