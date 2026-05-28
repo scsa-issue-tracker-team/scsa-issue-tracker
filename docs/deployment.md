@@ -59,5 +59,23 @@ curl https://YOUR_BACKEND_DOMAIN/api/health
 ## Notes
 
 - Production uses `spring.jpa.hibernate.ddl-auto=validate`, so the database schema must already match the entities.
-- Local development still uses `ddl-auto=update` to keep the beginner workflow light.
-- Database migrations should be introduced before the first serious production release.
+- Flyway runs database migrations from `backend/src/main/resources/db/migration`.
+- Local development uses `spring.flyway.baseline-on-migrate=true` so an existing non-empty Oracle schema can be marked as baseline version 1 without dropping data.
+- Production defaults `FLYWAY_BASELINE_ON_MIGRATE=false`. Use `true` only when connecting to an existing schema that already matches `V1__init_schema.sql`.
+- JPA uses `ddl-auto=validate` in both local and production profiles. This makes entity/schema mismatches fail fast instead of silently changing the database.
+
+## Flyway Basics
+
+Flyway migration files are versioned SQL files.
+
+```text
+V1__init_schema.sql
+V2__add_operational_indexes.sql
+V3__next_change.sql
+```
+
+Rules:
+
+- Never edit a migration file after it has been merged and run by teammates.
+- Add a new `V{number}__description.sql` file for each schema change.
+- Keep Java entity changes and matching Flyway migrations in the same pull request.
