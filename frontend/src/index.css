@@ -308,10 +308,13 @@ a { color: inherit; text-decoration: none; }
 .header-left { display: flex; align-items: center; gap: 28px; min-width: 0; }
 .brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .brand-mark {
-  display: inline-grid; place-items: center; width: 32px; height: 32px;
-  border-radius: var(--r-sm); background: var(--primary); color: var(--on-primary);
-  font-weight: 800; font-size: 13px; letter-spacing: -0.03em; box-shadow: var(--sh-sm);
+  display: inline-grid; place-items: center; flex-shrink: 0;
+  border-radius: 9px; background: var(--primary); color: var(--on-primary);
+  box-shadow: var(--sh-sm);
 }
+.brand-mark-sm { width: 28px; height: 28px; border-radius: 7px; }
+.brand-mark-md { width: 32px; height: 32px; }
+.brand-mark-lg { width: 48px; height: 48px; border-radius: 12px; }
 .brand-text { font-size: 15px; font-weight: 600; letter-spacing: -0.02em; }
 .brand-text strong { color: var(--primary); font-weight: 750; }
 
@@ -368,24 +371,71 @@ a { color: inherit; text-decoration: none; }
 .section-title { font-size: 16px; font-weight: 650; margin-bottom: 14px; }
 
 /* ============================================================
-   인증 화면
+   인증 화면 — 2단 (브랜드 히어로 + 폼)
    ============================================================ */
 .auth-screen {
-  min-height: 100%; display: flex; align-items: center; justify-content: center;
-  padding: 24px 16px;
-  background:
-    radial-gradient(1200px 600px at 50% -10%, var(--primary-soft), transparent 60%);
+  min-height: 100vh; display: flex; align-items: stretch; justify-content: center;
+  background: var(--bg);
 }
+.auth-layout {
+  display: grid; grid-template-columns: 1fr; width: 100%; min-height: 100vh;
+}
+
+/* 좌측 히어로 패널 — 절제된 단색 톤 (Linear/Vercel 계열) */
+.auth-hero {
+  position: relative; overflow: hidden; display: none;
+  background: #0e1118;
+  color: #fff; padding: 56px;
+}
+/* 미대한 그리드 텍스처 — 제품 느낌 */
+.auth-hero::before {
+  content: ""; position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse at 30% 30%, #000 0%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse at 30% 30%, #000 0%, transparent 75%);
+}
+.auth-hero-inner { position: relative; z-index: 2; max-width: 440px; margin: auto 0; }
+.auth-hero .brand-mark {
+  background: var(--primary); color: #fff;
+  margin: 0 0 32px;
+}
+.auth-hero-title { font-size: 40px; line-height: 1.15; font-weight: 750; letter-spacing: -0.03em; margin: 0 0 18px; color: #fff; }
+.auth-hero-sub { font-size: 15.5px; line-height: 1.65; color: rgba(255,255,255,0.62); margin: 0 0 40px; }
+.auth-feature-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.auth-feature-list li { display: flex; align-items: center; gap: 13px; font-size: 14px; color: rgba(255,255,255,0.82); }
+.auth-feat-ic {
+  display: grid; place-items: center; width: 32px; height: 32px; flex-shrink: 0;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px; font-size: 14px; color: var(--brand-300);
+}
+/* 은은한 액센트 — 거의 안 움직이는 숨쉬기 */
+.auth-hero-glow {
+  position: absolute; width: 520px; height: 520px; border-radius: 50%;
+  bottom: -220px; right: -180px;
+  background: radial-gradient(circle, rgba(91,108,255,0.22), transparent 65%);
+  filter: blur(60px); animation: floatGlow 24s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+@keyframes floatGlow {
+  from { transform: translate(0,0) scale(1); opacity: 0.85; }
+  to { transform: translate(-10px,-8px) scale(1.04); opacity: 1; }
+}
+
+/* 우측 폼 */
+.auth-form-side { display: flex; align-items: center; justify-content: center; padding: 32px 20px; }
 .auth-card {
   width: 100%; max-width: 400px;
-  background: var(--bg-elev); border: 1px solid var(--border);
-  border-radius: var(--r-lg); padding: 34px 30px; box-shadow: var(--sh-lg);
-  animation: fadeUp 0.35s var(--ease);
+  animation: fadeUp 0.4s var(--ease);
 }
 .auth-brand { text-align: center; margin-bottom: 26px; }
 .auth-brand h1 { font-size: 21px; margin-top: 14px; }
 .auth-brand .muted { margin-top: 4px; }
-.brand-mark.lg { width: 52px; height: 52px; font-size: 19px; border-radius: var(--r-md); margin: 0 auto; }
+/* (lg는 brand-mark-lg로 통일됨) */
+.auth-card-head { margin-bottom: 20px; }
+.auth-card-head h2 { font-size: 22px; margin-bottom: 4px; }
 
 .tabs {
   display: flex; gap: 3px; background: var(--bg-sunken); padding: 4px;
@@ -399,7 +449,14 @@ a { color: inherit; text-decoration: none; }
 .tab.active { background: var(--bg-elev); color: var(--text); box-shadow: var(--sh-sm); }
 .tab:not(.active):hover { color: var(--text); }
 
-/* segmented tabs (알림 필터 등) */
+/* 데스크톱: 2단 노출, 모바일 브랜드 숨김 */
+@media (min-width: 860px) {
+  .auth-layout { grid-template-columns: 1.1fr 1fr; }
+  .auth-hero { display: block; }
+  .auth-brand-mobile { display: none; }
+}
+
+/* segmented tabs (알림 필터 등) — 기존 유지 */
 .seg-tabs { display: inline-flex; background: var(--bg-sunken); padding: 3px; border-radius: var(--r-sm); }
 .seg {
   background: transparent; border: none; color: var(--text-dim);

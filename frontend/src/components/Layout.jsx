@@ -4,6 +4,7 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import { useTheme } from "./ThemeContext.jsx";
 import { useNotifications } from "./NotificationContext.jsx";
 import CommandPalette from "./CommandPalette.jsx";
+import BrandMark from "./BrandMark.jsx";
 
 export default function Layout() {
   const { currentUser, logout } = useAuth();
@@ -32,7 +33,7 @@ export default function Layout() {
       <header className={`app-header ${scrolled ? "scrolled" : ""}`}>
         <div className="header-left">
           <Link to="/dashboard" className="brand">
-            <span className="brand-mark">IT</span>
+            <BrandMark size="sm" />
             <span className="brand-text"><strong>SCSA</strong> Tracker</span>
           </Link>
           <nav className="main-nav">
