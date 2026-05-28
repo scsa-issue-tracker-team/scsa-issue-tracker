@@ -18,12 +18,24 @@ export function Loading({ label = "불러오는 중..." }) {
   );
 }
 
+// 빈 상태용 미니 SVG 일러스트 (이모지보다 정성 있는 느낌)
+function EmptyIllustration() {
+  return (
+    <svg className="empty-illust" viewBox="0 0 120 96" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      <rect x="22" y="20" width="76" height="60" rx="8" fill="var(--bg-elev-2)" stroke="var(--border)" strokeWidth="2"/>
+      <rect x="34" y="34" width="40" height="6" rx="3" fill="var(--border-strong)"/>
+      <rect x="34" y="46" width="52" height="5" rx="2.5" fill="var(--border)"/>
+      <rect x="34" y="56" width="30" height="5" rx="2.5" fill="var(--border)"/>
+      <circle cx="92" cy="68" r="16" fill="var(--primary-soft)" stroke="var(--primary)" strokeWidth="2"/>
+      <path d="M92 61v14M85 68h14" stroke="var(--primary)" strokeWidth="2.5" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
 export function EmptyState({ title, description, action }) {
   return (
     <div className="state-block">
-      <div className="state-emoji" aria-hidden>
-        🗂️
-      </div>
+      <EmptyIllustration />
       <p className="state-title">{title}</p>
       {description && <p className="muted">{description}</p>}
       {action}
@@ -71,4 +83,45 @@ export function ErrorState({ error, onRetry }) {
 export function InlineError({ error }) {
   if (!error) return null;
   return <p className="inline-error">{error.message}</p>;
+}
+
+// 스켈레톤: 로딩 중 레이아웃을 유지하며 회색 깜빡임을 보여준다 (스피너보다 고급스럽고 안정적).
+export function Skeleton({ w = "100%", h = 14, r = 6, style }) {
+  return <span className="skeleton" style={{ width: w, height: h, borderRadius: r, ...style }} aria-hidden />;
+}
+
+// 이슈 리스트용 스켈레톤 행 n개
+export function IssueListSkeleton({ rows = 4 }) {
+  return (
+    <ul className="issue-list" aria-busy="true" aria-label="이슈 불러오는 중">
+      {Array.from({ length: rows }).map((_, i) => (
+        <li key={i}>
+          <div className="issue-row skeleton-row">
+            <div className="issue-row-top">
+              <Skeleton w="55%" h={15} />
+              <Skeleton w={120} h={18} r={999} />
+            </div>
+            <Skeleton w="80%" h={12} />
+            <Skeleton w="40%" h={11} />
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+// 카드 그리드용 스켈레톤
+export function CardGridSkeleton({ count = 6 }) {
+  return (
+    <div className="card-grid" aria-busy="true">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="project-card skeleton-row">
+          <Skeleton w="30%" h={11} />
+          <Skeleton w="65%" h={18} />
+          <Skeleton w="100%" h={12} />
+          <Skeleton w="80%" h={12} />
+        </div>
+      ))}
+    </div>
+  );
 }
