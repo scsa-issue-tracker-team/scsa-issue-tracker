@@ -6,6 +6,9 @@ import { useFetch } from "../hooks/useAsync.js";
 import { Loading, ErrorState, EmptyState, Skeleton } from "../components/StateViews.jsx";
 import Badge from "../components/Badge.jsx";
 import StatusDonut from "../components/StatusDonut.jsx";
+import PriorityBreakdown from "../components/PriorityBreakdown.jsx";
+import DueTimeline from "../components/DueTimeline.jsx";
+import ActivityHeatmap from "../components/ActivityHeatmap.jsx";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useUserDirectory, nameOf } from "../auth/UserDirectoryContext.jsx";
 import { ISSUE_STATUS, statusMeta, typeMeta, priorityMeta, notificationMeta, humanizeMessage } from "../lib/issueMeta.js";
@@ -35,11 +38,13 @@ export default function DashboardPage() {
   const navigate = useNavigate();
 
   const summaryQuery = useFetch(getMyIssueSummary, []);
+  // 분석용으로 충분한 양 (size 100). 화면 표시는 슬라이스해서 6개만.
   const assignedQuery = useFetch(
-    () => listMyIssues({ role: "ASSIGNEE", size: 6, sort: "dueDate,asc" }),
+    () => listMyIssues({ role: "ASSIGNEE", size: 100, sort: "dueDate,asc" }),
     []
   );
   const notifQuery = useFetch(() => listNotifications({ limit: 5 }), []);
+  const allMyIssues = assignedQuery.data?.content ?? [];
 
   return (
     <div className="page dashboard">
@@ -62,7 +67,22 @@ export default function DashboardPage() {
         </div>
       )}
       {summaryQuery.error && <ErrorState error={summaryQuery.error} onRetry={summaryQuery.reload} />}
-      {summaryQuery.data && <SummarySection summary={summaryQuery.data} />}
+      {summaryQuery.data && <SummarySection summary={summaryQuery.data} myIssues={allMyIssues} />}
+
+      {/* 데이터 시각화 2단: 마감 타임라인 + 활동 히트맵 */}
+      <div className="dashboard-grid">
+        {allMyIssues.length > 0 && (
+          <section className="dash-card">
+            <DueTimeline
+              issues={allMyIssues}
+              onOpenIssue={(i) => navigate(`/projects/${i.projectId}/issues/${i.id}`)}
+            />
+          </section>
+        )}
+        <section className="dash-card">
+          <ActivityHeatmap />
+        </section>
+      </div>
 
       <div className="dashboard-grid">
         {/* 내 담당 이슈 (마감 빠른 순) */}
@@ -76,9 +96,9 @@ export default function DashboardPage() {
           {assignedQuery.loading && <Loading label="불러오는 중..." />}
           {assignedQuery.error && <ErrorState error={assignedQuery.error} onRetry={assignedQuery.reload} />}
           {assignedQuery.data && (
-            assignedQuery.data.content?.length > 0 ? (
+            allMyIssues.length > 0 ? (
               <ul className="mini-issue-list">
-                {assignedQuery.data.content.map((issue) => (
+                {allMyIssues.slice(0, 6).map((issue) => (
                   <MiniIssueRow key={issue.id} issue={issue} onClick={() =>
                     navigate(`/projects/${issue.projectId}/issues/${issue.id}`)} />
                 ))}
@@ -119,7 +139,7 @@ export default function DashboardPage() {
   );
 }
 
-function SummarySection({ summary }) {
+function SummarySection({ summary, myIssues }) {
   const cards = [
     { label: "관련 이슈", value: summary.totalRelatedCount, tone: "" },
     { label: "내 담당", value: summary.assignedToMeCount, tone: "info" },
@@ -128,6 +148,7 @@ function SummarySection({ summary }) {
   ];
   const hasStatus = summary.statusCounts &&
     Object.values(summary.statusCounts).some((v) => v > 0);
+  const hasActive = (myIssues ?? []).some((i) => i.status === "OPEN" || i.status === "IN_PROGRESS");
 
   return (
     <>
@@ -136,13 +157,22 @@ function SummarySection({ summary }) {
           <MetricCard key={c.label} label={c.label} value={c.value ?? 0} tone={c.tone} />
         ))}
       </div>
-      {hasStatus && (
-        <section className="dash-card donut-card">
-          <div className="dash-card-head">
-            <h2>상태 분포</h2>
-          </div>
-          <StatusDonut statusCounts={summary.statusCounts} />
-        </section>
+      {(hasStatus || hasActive) && (
+        <div className="dashboard-grid">
+          {hasStatus && (
+            <section className="dash-card donut-card">
+              <div className="dash-card-head">
+                <h2>상태 분포</h2>
+              </div>
+              <StatusDonut statusCounts={summary.statusCounts} />
+            </section>
+          )}
+          {hasActive && (
+            <section className="dash-card">
+              <PriorityBreakdown issues={myIssues} />
+            </section>
+          )}
+        </div>
       )}
     </>
   );
