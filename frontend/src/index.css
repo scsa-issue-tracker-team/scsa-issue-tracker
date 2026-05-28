@@ -1202,3 +1202,73 @@ a { color: inherit; text-decoration: none; }
   .donut-wrap { flex-direction: column; align-items: stretch; gap: 18px; }
   .donut-chart { align-self: center; }
 }
+
+/* ============================================================
+   우선순위 분포
+   ============================================================ */
+.prio-breakdown { display: flex; flex-direction: column; gap: 14px; }
+.prio-head { display: flex; align-items: baseline; justify-content: space-between; }
+.prio-title { font-size: 14px; font-weight: 650; }
+.prio-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.prio-row { display: grid; grid-template-columns: 70px 1fr 28px; align-items: center; gap: 12px; }
+.prio-name { font-size: 13px; font-weight: 500; color: var(--text-dim); }
+.prio-track { height: 9px; background: var(--bg-sunken); border-radius: var(--r-full); overflow: hidden; }
+.prio-fill { display: block; height: 100%; border-radius: var(--r-full); transition: width 0.5s var(--ease); }
+.prio-count { font-size: 13px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ============================================================
+   마감 타임라인
+   ============================================================ */
+.due-timeline { display: flex; flex-direction: column; gap: 14px; }
+.due-head { display: flex; align-items: baseline; justify-content: space-between; }
+.due-title { font-size: 14px; font-weight: 650; }
+.due-axis { padding: 12px 6px 6px; }
+.due-axis-labels { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 11.5px; color: var(--text-faint); }
+.due-axis-labels .today-label { font-weight: 700; color: var(--primary); }
+.due-axis-line {
+  position: relative; height: 24px;
+  background: linear-gradient(90deg, var(--border) 0%, var(--border) 100%);
+  background-size: 100% 2px; background-repeat: no-repeat; background-position: center;
+}
+.due-today-marker {
+  position: absolute; top: -4px; bottom: -4px; width: 2px;
+  background: var(--primary); border-radius: 2px; transform: translateX(-50%);
+}
+.due-dot {
+  position: absolute; top: 50%; transform: translate(-50%, -50%);
+  width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--bg-elev);
+  background: var(--text-faint); cursor: pointer; padding: 0;
+  transition: transform 0.12s var(--ease), box-shadow 0.15s var(--ease);
+}
+.due-dot:hover { transform: translate(-50%, -50%) scale(1.4); box-shadow: var(--sh-md); z-index: 2; }
+.due-dot.due-overdue { background: var(--danger); }
+.due-dot.due-soon { background: var(--warning); }
+.due-dot.due-normal { background: var(--primary); }
+.due-overflow { display: flex; justify-content: space-between; margin-top: 12px; }
+
+/* ============================================================
+   활동 히트맵 (GitHub 잔디 스타일)
+   ============================================================ */
+.heatmap { display: flex; flex-direction: column; gap: 12px; }
+.heatmap-head { display: flex; align-items: baseline; justify-content: space-between; }
+.heatmap-title { font-size: 14px; font-weight: 650; }
+.heatmap-grid { display: flex; gap: 3px; padding: 4px 0; overflow-x: auto; }
+.heatmap-col { display: flex; flex-direction: column; gap: 3px; flex-shrink: 0; }
+.heatmap-cell {
+  width: 13px; height: 13px; border-radius: 3px;
+  background: var(--bg-sunken); transition: transform 0.1s var(--ease);
+  display: inline-block;
+}
+.heatmap-cell:hover { transform: scale(1.25); cursor: pointer; }
+.heatmap-cell.level-0 { background: var(--bg-sunken); }
+.heatmap-cell.level-1 { background: rgba(91,108,255,0.25); }
+.heatmap-cell.level-2 { background: rgba(91,108,255,0.5); }
+.heatmap-cell.level-3 { background: rgba(91,108,255,0.75); }
+.heatmap-cell.level-4 { background: var(--primary); }
+.heatmap-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.heatmap-legend { display: inline-flex; align-items: center; gap: 4px; }
+.heatmap-legend .heatmap-cell { width: 10px; height: 10px; }
+.heatmap-skeleton {
+  height: 110px; background: var(--bg-sunken); border-radius: var(--r-sm);
+  animation: shimmer 1.3s infinite;
+}
