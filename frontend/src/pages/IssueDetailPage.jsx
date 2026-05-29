@@ -16,12 +16,14 @@ import { formatDateTime, timeAgo, formatDueDate, dueState, dueLabel, todayISO } 
 import { useProjectMembers } from "../hooks/useProjectMembers.js";
 import { useUserDirectory, nameOf } from "../auth/UserDirectoryContext.jsx";
 import { useToast } from "../components/ToastContext.jsx";
+import { useDocumentTitle } from "../hooks/useDocumentTitle.js";
 
 export default function IssueDetailPage() {
   const { projectId, issueId } = useParams();
   const navigate = useNavigate();
 
   const issueQuery = useFetch(() => getIssue(projectId, issueId), [projectId, issueId]);
+  useDocumentTitle(issueQuery.data ? `#${issueQuery.data.id} ${issueQuery.data.title}` : null);
   const { members } = useProjectMembers(projectId);
   const { byId } = useUserDirectory();
   const [editing, setEditing] = useState(false);
