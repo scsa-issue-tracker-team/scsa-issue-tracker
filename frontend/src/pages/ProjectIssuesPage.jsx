@@ -30,7 +30,7 @@ export default function ProjectIssuesPage() {
   const [keyword, setKeyword] = useState("");
   const [searchTerm, setSearchTerm] = useState(""); // 디바운스된 실제 검색어
   const [sort, setSort] = useState("createdAt,desc");
-  const [view, setView] = useState("list"); // list | grouped | board
+  const [view, setView] = useState("board"); // list | grouped | board
   const issueFilters =
     view === "board"
       ? { issueType: filters.issueType, priority: filters.priority, assigneeId: filters.assigneeId }
