@@ -9,6 +9,8 @@ import {
 import { useFetch, useAsync } from "../hooks/useAsync.js";
 import { Loading, ErrorState, EmptyState, InlineError } from "./StateViews.jsx";
 import ReactionBar from "./ReactionBar.jsx";
+import Markdown from "./Markdown.jsx";
+import MarkdownEditor from "./MarkdownEditor.jsx";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useUserDirectory, nameOf } from "../auth/UserDirectoryContext.jsx";
 import { useToast } from "./ToastContext.jsx";
@@ -39,8 +41,13 @@ export default function CommentSection({ projectId, issueId }) {
       <h2 className="section-title">댓글 {total > 0 && <span className="muted">({total})</span>}</h2>
 
       <form className="comment-form" onSubmit={submit}>
-        <textarea value={content} rows={2} maxLength={2000}
-          placeholder="댓글을 입력하세요" onChange={(e) => setContent(e.target.value)} />
+        <MarkdownEditor
+          value={content}
+          rows={2}
+          maxLength={2000}
+          placeholder="댓글을 Markdown으로 남겨보세요."
+          onChange={setContent}
+        />
         <button className="btn primary" disabled={create.loading || !content.trim()}>
           {create.loading ? "등록 중..." : "댓글 작성"}
         </button>
@@ -105,7 +112,13 @@ function CommentItem({ comment, projectId, issueId, onChanged }) {
 
       {editing ? (
         <div className="comment-edit">
-          <textarea value={editText} rows={2} maxLength={2000} onChange={(e) => setEditText(e.target.value)} />
+          <MarkdownEditor
+            value={editText}
+            rows={2}
+            maxLength={2000}
+            placeholder="댓글을 Markdown으로 수정하세요."
+            onChange={setEditText}
+          />
           <div className="form-actions">
             <button className="btn ghost small" onClick={() => setEditing(false)}>취소</button>
             <button className="btn primary small" onClick={saveEdit} disabled={upd.loading}>
@@ -115,7 +128,9 @@ function CommentItem({ comment, projectId, issueId, onChanged }) {
           <InlineError error={upd.error} />
         </div>
       ) : (
-        <p className={`comment-content ${comment.deleted ? "deleted" : ""}`}>{comment.content}</p>
+        comment.deleted
+          ? <p className="comment-content deleted">{comment.content}</p>
+          : <div className="comment-content"><Markdown>{comment.content}</Markdown></div>
       )}
 
       {/* 삭제되지 않은 댓글만 반응/답글 가능 */}
@@ -229,7 +244,9 @@ function ReplyItem({ reply, projectId, issueId, commentId, currentUser, byId, on
           <InlineError error={upd.error} />
         </div>
       ) : (
-        <p className={`comment-content ${reply.deleted ? "deleted" : ""}`}>{reply.content}</p>
+        reply.deleted
+          ? <p className="comment-content deleted">{reply.content}</p>
+          : <div className="comment-content"><Markdown>{reply.content}</Markdown></div>
       )}
     </li>
   );
