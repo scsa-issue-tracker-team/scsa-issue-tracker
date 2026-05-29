@@ -7,6 +7,7 @@ import { UserDirectoryProvider } from "./auth/UserDirectoryContext.jsx";
 import { ToastProvider } from "./components/ToastContext.jsx";
 import { ThemeProvider } from "./components/ThemeContext.jsx";
 import { NotificationProvider } from "./components/NotificationContext.jsx";
+import { ColdStartProvider } from "./components/ColdStartContext.jsx";
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -14,13 +15,15 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <BrowserRouter>
       <ThemeProvider>
         <ToastProvider>
-          <AuthProvider>
-            <UserDirectoryProvider>
-              <NotificationProvider>
-                <App />
-              </NotificationProvider>
-            </UserDirectoryProvider>
-          </AuthProvider>
+          <ColdStartProvider>
+            <AuthProvider>
+              <UserDirectoryProvider>
+                <NotificationProvider>
+                  <App />
+                </NotificationProvider>
+              </UserDirectoryProvider>
+            </AuthProvider>
+          </ColdStartProvider>
         </ToastProvider>
       </ThemeProvider>
     </BrowserRouter>
