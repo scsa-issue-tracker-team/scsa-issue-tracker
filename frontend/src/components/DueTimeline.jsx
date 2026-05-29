@@ -25,7 +25,29 @@ export default function DueTimeline({ issues, onOpenIssue }) {
   const overflowPast = items.filter((x) => x.diff < -HALF).length;
   const overflowFuture = items.filter((x) => x.diff > HALF).length;
 
-  if (items.length === 0) return null;
+  if (items.length === 0) {
+    return (
+      <div className="due-timeline">
+        <div className="due-head">
+          <h3 className="due-title">마감 타임라인</h3>
+          <span className="muted small">최근 {HALF}일 ~ 앞으로 {HALF}일</span>
+        </div>
+        <div className="due-empty">
+          <div className="due-empty-mark" aria-hidden="true">
+            <svg viewBox="0 0 40 40" width="40" height="40" fill="none">
+              <rect x="8" y="9" width="24" height="23" rx="6" stroke="currentColor" strokeWidth="2" />
+              <path d="M13 17H27M13 22H22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <path d="M15 6V12M25 6V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </div>
+          <div>
+            <p className="due-empty-title">마감일이 잡힌 이슈가 없습니다</p>
+            <p className="muted small">이슈에 마감일을 추가하면 이곳에 일정 흐름이 표시됩니다.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // KPI 카운트
   const overdueCount = items.filter((x) => x.diff < 0).length;

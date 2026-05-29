@@ -11,6 +11,7 @@ import ReactionBar from "../components/ReactionBar.jsx";
 import ActivityTimeline from "../components/ActivityTimeline.jsx";
 import CommentSection from "../components/CommentSection.jsx";
 import Markdown from "../components/Markdown.jsx";
+import MarkdownEditor from "../components/MarkdownEditor.jsx";
 import { ISSUE_TYPE, ISSUE_STATUS, ISSUE_PRIORITY, typeMeta, statusMeta, priorityMeta } from "../lib/issueMeta.js";
 import { formatDateTime, timeAgo, formatDueDate, dueState, dueLabel, todayISO } from "../lib/format.js";
 import { useProjectMembers } from "../hooks/useProjectMembers.js";
@@ -250,10 +251,15 @@ function IssueEditForm({ projectId, issue, members, onCancel, onSaved }) {
         <span>제목</span>
         <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
       </label>
-      <label className="field">
+      <div className="field">
         <span>내용</span>
-        <textarea value={form.content} rows={5} onChange={(e) => setForm({ ...form, content: e.target.value })} />
-      </label>
+        <MarkdownEditor
+          value={form.content}
+          rows={5}
+          placeholder="수정할 내용을 Markdown으로 정리하세요."
+          onChange={(content) => setForm({ ...form, content })}
+        />
+      </div>
       <div className="field-row">
         <EditSelect label="유형" value={form.issueType} options={ISSUE_TYPE} onChange={(v) => setForm({ ...form, issueType: v })} />
         <EditSelect label="우선순위" value={form.priority} options={ISSUE_PRIORITY} onChange={(v) => setForm({ ...form, priority: v })} />
