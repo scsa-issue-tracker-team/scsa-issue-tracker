@@ -5,7 +5,7 @@ const FOCUSABLE_SELECTOR =
 
 const FIELD_SELECTOR = "input:not([disabled]), select:not([disabled]), textarea:not([disabled])";
 
-export default function Modal({ open, title, onClose, children, footer }) {
+export default function Modal({ open, title, onClose, children, footer, size = "md", resizable = false }) {
   const cardRef = useRef(null);
   const prevFocusRef = useRef(null);
   const onCloseRef = useRef(onClose);
@@ -73,7 +73,11 @@ export default function Modal({ open, title, onClose, children, footer }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
-        className="modal-card"
+        className={[
+          "modal-card",
+          size !== "md" ? `modal-${size}` : "",
+          resizable ? "resizable" : "",
+        ].filter(Boolean).join(" ")}
         ref={cardRef}
         role="dialog"
         aria-modal="true"
