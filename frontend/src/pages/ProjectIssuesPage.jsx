@@ -26,14 +26,18 @@ export default function ProjectIssuesPage() {
   const membersState = useProjectMembers(projectId);
   const { byId } = useUserDirectory();
 
-  const [filters, setFilters] = useState({ issueType: "", priority: "", assigneeId: "" });
+  const [filters, setFilters] = useState({ status: "", issueType: "", priority: "", assigneeId: "" });
   const [keyword, setKeyword] = useState("");
   const [searchTerm, setSearchTerm] = useState(""); // 디바운스된 실제 검색어
   const [sort, setSort] = useState("createdAt,desc");
   const [view, setView] = useState("list"); // list | grouped | board
+  const issueFilters =
+    view === "board"
+      ? { issueType: filters.issueType, priority: filters.priority, assigneeId: filters.assigneeId }
+      : filters;
   const issuesQuery = useFetch(
-    () => listIssues(projectId, { ...filters, keyword: searchTerm || undefined, sort }),
-    [projectId, filters.issueType, filters.priority, filters.assigneeId, searchTerm, sort]
+    () => listIssues(projectId, { ...issueFilters, keyword: searchTerm || undefined, sort }),
+    [projectId, view, filters.status, filters.issueType, filters.priority, filters.assigneeId, searchTerm, sort]
   );
   const [modalOpen, setModalOpen] = useState(false);
   const [membersOpen, setMembersOpen] = useState(false);
@@ -61,10 +65,10 @@ export default function ProjectIssuesPage() {
   const project = projectQuery.data;
   const issues = localIssues;
   const total = issuesQuery.data?.totalElements ?? 0;
-  const hasFilter = filters.issueType || filters.priority || filters.assigneeId || searchTerm;
+  const hasFilter = (view !== "board" && filters.status) || filters.issueType || filters.priority || filters.assigneeId || searchTerm;
 
   const clearFilters = () => {
-    setFilters({ issueType: "", priority: "", assigneeId: "" });
+    setFilters({ status: "", issueType: "", priority: "", assigneeId: "" });
     setKeyword("");
     setSearchTerm("");
   };
@@ -125,6 +129,10 @@ export default function ProjectIssuesPage() {
           </form>
 
           <div className="filter-bar">
+            {view !== "board" && (
+              <FilterSelect label="상태" value={filters.status} options={ISSUE_STATUS}
+                onChange={(v) => setFilters({ ...filters, status: v })} />
+            )}
             <FilterSelect label="유형" value={filters.issueType} options={ISSUE_TYPE}
               onChange={(v) => setFilters({ ...filters, issueType: v })} />
             <FilterSelect label="우선순위" value={filters.priority} options={ISSUE_PRIORITY}
