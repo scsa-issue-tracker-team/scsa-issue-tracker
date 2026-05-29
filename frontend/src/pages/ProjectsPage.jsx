@@ -7,8 +7,10 @@ import { Loading, ErrorState, EmptyState, InlineError } from "../components/Stat
 import Modal from "../components/Modal.jsx";
 import { timeAgo } from "../lib/format.js";
 import { useToast } from "../components/ToastContext.jsx";
+import { useDocumentTitle } from "../hooks/useDocumentTitle.js";
 
 export default function ProjectsPage() {
+  useDocumentTitle("프로젝트");
   const navigate = useNavigate();
   const toast = useToast();
   const { data: projects, loading, error, reload } = useFetch(listProjects, []);
@@ -31,6 +33,7 @@ export default function ProjectsPage() {
 
       {!loading && !error && projects?.length === 0 && (
         <EmptyState
+          variant="project"
           title="아직 프로젝트가 없습니다"
           description="첫 프로젝트를 만들어 이슈 추적을 시작하세요."
           action={

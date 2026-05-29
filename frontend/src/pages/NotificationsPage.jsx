@@ -11,8 +11,10 @@ import { useNotifications } from "../components/NotificationContext.jsx";
 import { useToast } from "../components/ToastContext.jsx";
 import { NOTIFICATION_TYPE, notificationMeta, humanizeMessage } from "../lib/issueMeta.js";
 import { timeAgo } from "../lib/format.js";
+import { useDocumentTitle } from "../hooks/useDocumentTitle.js";
 
 export default function NotificationsPage() {
+  useDocumentTitle("알림");
   const navigate = useNavigate();
   const toast = useToast();
   const { byId } = useUserDirectory();
@@ -80,6 +82,7 @@ export default function NotificationsPage() {
       {query.error && <ErrorState error={query.error} onRetry={query.reload} />}
       {!query.loading && !query.error && items.length === 0 && (
         <EmptyState title="알림이 없습니다"
+          variant="notification"
           description={filter.tab === "unread" ? "안읽은 알림이 없습니다." : "아직 받은 알림이 없습니다."} />
       )}
 

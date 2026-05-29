@@ -11,6 +11,7 @@ import DueTimeline from "../components/DueTimeline.jsx";
 import ActivityHeatmap from "../components/ActivityHeatmap.jsx";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useUserDirectory, nameOf } from "../auth/UserDirectoryContext.jsx";
+import { useDocumentTitle } from "../hooks/useDocumentTitle.js";
 import { ISSUE_STATUS, statusMeta, typeMeta, priorityMeta, notificationMeta, humanizeMessage } from "../lib/issueMeta.js";
 import { formatDueDate, dueState, dueLabel, timeAgo } from "../lib/format.js";
 
@@ -34,6 +35,7 @@ function useCountUp(target, duration = 700) {
 }
 
 export default function DashboardPage() {
+  useDocumentTitle("내 작업함");
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 

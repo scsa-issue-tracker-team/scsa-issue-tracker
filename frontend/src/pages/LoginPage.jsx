@@ -6,9 +6,11 @@ import { signup as signupApi } from "../api/auth.js";
 import { InlineError } from "../components/StateViews.jsx";
 import { useToast } from "../components/ToastContext.jsx";
 import BrandMark from "../components/BrandMark.jsx";
+import { useDocumentTitle } from "../hooks/useDocumentTitle.js";
 
 export default function LoginPage() {
   const [mode, setMode] = useState("login"); // "login" | "signup"
+  useDocumentTitle(mode === "login" ? "로그인" : "회원가입");
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
