@@ -8,6 +8,7 @@ import Badge from "../components/Badge.jsx";
 import Modal from "../components/Modal.jsx";
 import MembersPanel from "../components/MembersPanel.jsx";
 import MembersModal from "../components/MembersModal.jsx";
+import ChatDrawer from "../components/ChatDrawer.jsx";
 import WorkloadBars from "../components/WorkloadBars.jsx";
 import MarkdownEditor from "../components/MarkdownEditor.jsx";
 import { ISSUE_TYPE, ISSUE_STATUS, ISSUE_PRIORITY, typeMeta, statusMeta, priorityMeta } from "../lib/issueMeta.js";
@@ -42,6 +43,7 @@ export default function ProjectIssuesPage() {
   );
   const [modalOpen, setModalOpen] = useState(false);
   const [membersOpen, setMembersOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
 
   // 서버 데이터를 로컬에 미러링 — 보드 드래그 시 옵티미스틱 갱신을 위해.
   // (훅은 early return보다 위에 있어야 한다 — Rules of Hooks)
@@ -104,6 +106,9 @@ export default function ProjectIssuesPage() {
         <div className="head-actions">
           <button className="btn ghost members-mobile-btn" onClick={() => setMembersOpen(true)}>
             멤버 {membersState.members.length > 0 && `(${membersState.members.length})`}
+          </button>
+          <button className="btn ghost" onClick={() => setChatOpen(true)} title="프로젝트 채팅">
+            💬 채팅
           </button>
           <button className="btn primary" onClick={() => setModalOpen(true)}>
             + 새 이슈
@@ -231,6 +236,13 @@ export default function ProjectIssuesPage() {
         open={membersOpen}
         onClose={() => setMembersOpen(false)}
         membersState={membersState}
+      />
+
+      <ChatDrawer
+        open={chatOpen}
+        onClose={() => setChatOpen(false)}
+        projectId={projectId}
+        projectName={project?.name}
       />
     </div>
   );
