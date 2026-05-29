@@ -3,11 +3,21 @@ import { setAuthHooks } from "../api/client.js";
 import * as authApi from "../api/auth.js";
 
 const TOKEN_KEY = "scsaIssueTrackerAccessToken";
+const USER_KEY = "scsaIssueTrackerCurrentUser";
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY) ?? "");
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(() => {
+    const saved = localStorage.getItem(USER_KEY);
+    if (!saved) return null;
+    try {
+      return JSON.parse(saved);
+    } catch {
+      localStorage.removeItem(USER_KEY);
+      return null;
+    }
+  });
   const [booting, setBooting] = useState(true); // 새로고침 시 me 복원 중인지
   const tokenRef = useRef(token);
   tokenRef.current = token;
@@ -17,6 +27,7 @@ export function AuthProvider({ children }) {
     setToken("");
     setCurrentUser(null);
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
   }, []);
 
   // client.js에 토큰 getter와 401 핸들러를 주입한다.
@@ -37,9 +48,12 @@ export function AuthProvider({ children }) {
       }
       try {
         const me = await authApi.getMe();
-        if (!cancelled) setCurrentUser(me);
-      } catch {
-        if (!cancelled) logout();
+        if (!cancelled) {
+          setCurrentUser(me);
+          localStorage.setItem(USER_KEY, JSON.stringify(me));
+        }
+      } catch (error) {
+        if (!cancelled && error?.status === 401) logout();
       } finally {
         if (!cancelled) setBooting(false);
       }
@@ -59,6 +73,7 @@ export function AuthProvider({ children }) {
     setToken(accessToken);
     const me = await authApi.getMe();
     setCurrentUser(me);
+    localStorage.setItem(USER_KEY, JSON.stringify(me));
     return me;
   }, []);
 
