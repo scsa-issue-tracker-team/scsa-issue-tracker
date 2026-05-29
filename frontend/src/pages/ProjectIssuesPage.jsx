@@ -430,7 +430,7 @@ function CreateIssueModal({ projectId, members, open, onClose, onCreated }) {
   const close = () => { setError(null); setForm(empty); onClose(); };
 
   return (
-    <Modal open={open} title="새 이슈" onClose={close}>
+    <Modal open={open} title="새 이슈" onClose={close} size="wide" resizable>
       <form className="form" onSubmit={submit}>
         <label className="field">
           <span>제목</span>
