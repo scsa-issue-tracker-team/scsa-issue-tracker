@@ -9,6 +9,7 @@ import Modal from "../components/Modal.jsx";
 import MembersPanel from "../components/MembersPanel.jsx";
 import MembersModal from "../components/MembersModal.jsx";
 import WorkloadBars from "../components/WorkloadBars.jsx";
+import MarkdownEditor from "../components/MarkdownEditor.jsx";
 import { ISSUE_TYPE, ISSUE_STATUS, ISSUE_PRIORITY, typeMeta, statusMeta, priorityMeta } from "../lib/issueMeta.js";
 import { timeAgo, formatDueDate, dueState, dueLabel } from "../lib/format.js";
 import { useProjectMembers } from "../hooks/useProjectMembers.js";
@@ -30,7 +31,7 @@ export default function ProjectIssuesPage() {
   const [keyword, setKeyword] = useState("");
   const [searchTerm, setSearchTerm] = useState(""); // 디바운스된 실제 검색어
   const [sort, setSort] = useState("createdAt,desc");
-  const [view, setView] = useState("list"); // list | grouped | board
+  const [view, setView] = useState("board"); // list | grouped | board
   const issueFilters =
     view === "board"
       ? { issueType: filters.issueType, priority: filters.priority, assigneeId: filters.assigneeId }
@@ -435,10 +436,15 @@ function CreateIssueModal({ projectId, members, open, onClose, onCreated }) {
           <span>제목</span>
           <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required autoFocus />
         </label>
-        <label className="field">
+        <div className="field">
           <span>내용 (선택)</span>
-          <textarea value={form.content} rows={4} onChange={(e) => setForm({ ...form, content: e.target.value })} />
-        </label>
+          <MarkdownEditor
+            value={form.content}
+            rows={4}
+            placeholder="문제 상황, 재현 방법, 기대 결과를 Markdown으로 남겨보세요."
+            onChange={(content) => setForm({ ...form, content })}
+          />
+        </div>
         <div className="field-row">
           <SelectField label="유형" value={form.issueType} options={ISSUE_TYPE}
             onChange={(v) => setForm({ ...form, issueType: v })} />
