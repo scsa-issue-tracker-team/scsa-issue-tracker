@@ -20,14 +20,18 @@ import com.scsa.issuetracker.notification.NotificationService;
 import com.scsa.issuetracker.project.entity.Project;
 import com.scsa.issuetracker.projectmember.ProjectAccessValidator;
 import com.scsa.issuetracker.projectmember.ProjectMemberRepository;
+import jakarta.persistence.criteria.Predicate;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -95,16 +99,18 @@ public class IssueServiceImpl implements IssueService {
     ) {
         projectAccessValidator.getAccessibleProject(projectId);
 
-        return issueRepository.findByProjectIdWithFilters(
-                        projectId,
-                        status,
-                        issueType,
-                        priority,
-                        assigneeId,
-                        reporterId,
-                        dueDateFrom,
-                        dueDateTo,
-                        normalizeKeyword(keyword),
+        return issueRepository.findAll(
+                        buildIssueFilterSpecification(
+                                projectId,
+                                status,
+                                issueType,
+                                priority,
+                                assigneeId,
+                                reporterId,
+                                dueDateFrom,
+                                dueDateTo,
+                                normalizeKeyword(keyword)
+                        ),
                         pageable
                 )
                 .map(IssueResponse::from);
@@ -260,6 +266,53 @@ public class IssueServiceImpl implements IssueService {
         }
 
         return keyword.trim();
+    }
+
+    private Specification<Issue> buildIssueFilterSpecification(
+            Long projectId,
+            IssueStatus status,
+            IssueType issueType,
+            IssuePriority priority,
+            Long assigneeId,
+            Long reporterId,
+            LocalDate dueDateFrom,
+            LocalDate dueDateTo,
+            String keyword
+    ) {
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(criteriaBuilder.equal(root.get("projectId"), projectId));
+
+            if (status != null) {
+                predicates.add(criteriaBuilder.equal(root.get("status"), status));
+            }
+            if (issueType != null) {
+                predicates.add(criteriaBuilder.equal(root.get("issueType"), issueType));
+            }
+            if (priority != null) {
+                predicates.add(criteriaBuilder.equal(root.get("priority"), priority));
+            }
+            if (assigneeId != null) {
+                predicates.add(criteriaBuilder.equal(root.get("assigneeId"), assigneeId));
+            }
+            if (reporterId != null) {
+                predicates.add(criteriaBuilder.equal(root.get("reporterId"), reporterId));
+            }
+            if (dueDateFrom != null) {
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("dueDate"), dueDateFrom));
+            }
+            if (dueDateTo != null) {
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("dueDate"), dueDateTo));
+            }
+            if (keyword != null) {
+                predicates.add(criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("title")),
+                        "%" + keyword.toLowerCase(Locale.ROOT) + "%"
+                ));
+            }
+
+            return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
+        };
     }
 
     private void validateAssignee(Project project, Long assigneeId) {
