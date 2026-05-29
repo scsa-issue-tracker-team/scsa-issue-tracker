@@ -14,6 +14,7 @@ import { timeAgo, formatDueDate, dueState, dueLabel } from "../lib/format.js";
 import { useProjectMembers } from "../hooks/useProjectMembers.js";
 import { useUserDirectory, nameOf } from "../auth/UserDirectoryContext.jsx";
 import { useToast } from "../components/ToastContext.jsx";
+import { useDocumentTitle } from "../hooks/useDocumentTitle.js";
 
 export default function ProjectIssuesPage() {
   const { projectId } = useParams();
@@ -21,6 +22,7 @@ export default function ProjectIssuesPage() {
   const toast = useToast();
 
   const projectQuery = useFetch(() => getProject(projectId), [projectId]);
+  useDocumentTitle(projectQuery.data?.name);
   const membersState = useProjectMembers(projectId);
   const { byId } = useUserDirectory();
 
@@ -167,6 +169,7 @@ export default function ProjectIssuesPage() {
 
           {!issuesQuery.loading && !issuesQuery.error && issues.length === 0 && (
             <EmptyState
+              variant={hasFilter ? "search" : "issue"}
               title="이슈가 없습니다"
               description={hasFilter ? "조건에 맞는 이슈가 없습니다." : "첫 이슈를 만들어 보세요."}
               action={
