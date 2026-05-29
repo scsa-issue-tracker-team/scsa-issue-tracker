@@ -1,250 +1,107 @@
 # Production Runbook
 
-이 문서는 SCSA Issue Tracker를 실제 배포 환경에서 운영할 때 확인할 내용을 정리한다.
+This document records the current production deployment shape and the first
+checks to run when something looks broken.
 
-비밀번호, JWT secret, DB password 같은 비밀값은 이 문서에 기록하지 않는다. 실제 값은 Render/Vercel의 환경변수 화면에서만 관리한다.
+## Services
 
-## Current Production URLs
+- Frontend: `https://scsa-issue-tracker.vercel.app`
+- Backend: `https://scsa-issue-tracker-api.onrender.com`
+- Backend health: `https://scsa-issue-tracker-api.onrender.com/api/health`
+- Database: Render PostgreSQL
 
-| Component | URL |
-| --- | --- |
-| Frontend | `https://scsa-issue-tracker.vercel.app` |
-| Backend API | `https://scsa-issue-tracker-api.onrender.com` |
-| Backend health check | `https://scsa-issue-tracker-api.onrender.com/api/health` |
+## Deployment Sources
 
-## Deployment Architecture
+- Vercel production branch: `frontend-dev`
+- Render backend branch: `backend-dev`
 
-```text
-Browser
-  -> Vercel frontend
-  -> /api/* rewrite
-  -> Render Spring Boot backend
-  -> Render PostgreSQL
-```
+Do not rely on `main` as the current production trigger.
 
-### Frontend
+## Frontend Notes
 
-- Platform: Vercel
-- App root: `frontend`
-- Build command: `npm run build`
-- Output directory: `dist`
-- API strategy: relative path + Vercel rewrite
+The frontend app uses `/api/v1/...` for HTTP API calls.
+`frontend/vercel.json` rewrites those requests to the Render backend.
 
-The frontend API client uses relative paths such as `/api/v1`.
-
-In local development, `vite.config.js` proxies `/api` to `http://localhost:8081`.
-
-In production, `frontend/vercel.json` rewrites `/api/*` to the Render backend.
-
-```json
-{
-  "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "https://scsa-issue-tracker-api.onrender.com/api/:path*"
-    }
-  ]
-}
-```
-
-### Backend
-
-- Platform: Render Web Service
-- Service name: `scsa-issue-tracker-api`
-- Runtime: Docker
-- Source branch: `backend-dev`
-- App root: `backend`
-- Dockerfile path: `backend/Dockerfile`
-- Production profile: `prod`
-
-Render builds the backend by reading `backend/Dockerfile`.
+WebSocket chat connects directly to Render:
 
 ```text
-eclipse-temurin:17-jdk
-  -> Gradle bootJar
-  -> app.jar
-
-eclipse-temurin:17-jre
-  -> java -jar app.jar
+wss://scsa-issue-tracker-api.onrender.com/ws
 ```
 
-### Database
+This avoids relying on Vercel as a WebSocket upgrade proxy.
 
-- Platform: Render PostgreSQL
-- Database name: `scsa_issue_tracker`
-- User: `scsa_app`
-- Region: Oregon (US West)
-- Free instance limit: 1 GB
-- Free database expiration shown in Render: 2026-06-27
+## Backend Notes
 
-Long-running production use requires upgrading the database or migrating to another managed PostgreSQL provider before expiration.
-
-## Backend Environment Variables
-
-Render backend service requires these variables.
-
-| Name | Purpose |
-| --- | --- |
-| `SPRING_PROFILES_ACTIVE` | Use `prod` settings |
-| `DB_URL` | PostgreSQL JDBC URL |
-| `DB_USERNAME` | PostgreSQL username |
-| `DB_PASSWORD` | PostgreSQL password |
-| `JWT_SECRET` | JWT signing secret |
-| `CORS_ALLOWED_ORIGINS` | Comma-separated allowed frontend origins |
-
-Current expected shape:
+Render needs these production variables:
 
 ```text
 SPRING_PROFILES_ACTIVE=prod
-DB_URL=jdbc:postgresql://<render-internal-host>:5432/scsa_issue_tracker
-DB_USERNAME=scsa_app
-DB_PASSWORD=<secret>
-JWT_SECRET=<secret>
-CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,https://scsa-issue-tracker.vercel.app
+DB_URL=...
+DB_USERNAME=...
+DB_PASSWORD=...
+JWT_SECRET=...
+CORS_ALLOWED_ORIGINS=https://scsa-issue-tracker.vercel.app
 ```
 
-Do not commit these secret values.
-
-## Database Migration Policy
-
-The backend uses Flyway to manage database schema changes.
-
-Local Oracle and production PostgreSQL use separate migration directories.
+Flyway runs PostgreSQL migrations from:
 
 ```text
-backend/src/main/resources/db/migration/oracle
-backend/src/main/resources/db/migration/postgresql
+classpath:db/migration/postgresql
 ```
 
-Production uses:
+Local Oracle migrations live separately under:
 
-```properties
-spring.jpa.hibernate.ddl-auto=validate
-spring.flyway.locations=classpath:db/migration/postgresql
+```text
+classpath:db/migration/oracle
 ```
 
-This means:
+## WebSocket Chat Checks
 
-- Flyway creates or changes database tables.
-- Hibernate only validates that entities and tables match.
-- Entity changes that need schema changes must include a new Flyway migration in the same PR.
-- Do not edit an already-merged migration file. Add a new `V{number}__description.sql` file instead.
+If chat says "connection error":
 
-## Deployment Checks
+1. Check the deployed frontend bundle includes the Render WebSocket URL.
+2. Check Render backend is awake.
+3. Confirm the user is logged in and has a valid JWT.
+4. Confirm the user is a project creator or project member.
+5. Check Render logs for WebSocket handshake or STOMP authorization errors.
 
-Before merging backend changes:
+Expected STOMP contract:
 
-```bash
-cd backend
-./gradlew.bat compileJava
-./gradlew.bat test
+```text
+Endpoint: /ws
+CONNECT header: Authorization: Bearer {accessToken}
+SEND: /app/projects/{projectId}/chat.send
+SUBSCRIBE: /topic/projects/{projectId}/chat
 ```
 
-After backend deploy:
+## Demo Routine
 
-```bash
-curl https://scsa-issue-tracker-api.onrender.com/api/health
-```
+1. Visit backend health URL to wake Render.
+2. Open the frontend URL.
+3. Log in with demo accounts.
+4. Prepare one project with at least two members.
+5. Prepare a few issues across different statuses.
+6. Test comments, notifications, and chat before presenting.
+7. Keep the chat panel open only when demonstrating real-time collaboration.
 
-Expected response:
+## Common Failures
+
+### Direct URL opens Vercel 404
+
+Check `frontend/vercel.json` includes SPA fallback:
 
 ```json
-{"status":"ok"}
+{ "source": "/:path*", "destination": "/index.html" }
 ```
 
-After frontend deploy:
+### API works locally but not on Vercel
 
-```bash
-curl https://scsa-issue-tracker.vercel.app
-curl https://scsa-issue-tracker.vercel.app/api/health
-```
+Check `frontend/vercel.json` API rewrite and Render service health.
 
-Expected API rewrite response:
+### Refresh logs the user out
 
-```json
-{"status":"ok"}
-```
+Check `/auth/me` behavior and frontend token restore logic.
 
-## Common Issues
+### Render is slow on first request
 
-### Render free instance wakes up slowly
-
-Render Free Web Service can spin down after inactivity.
-
-First request after sleep can take 30-60 seconds or more.
-
-Symptoms:
-
-```text
-Application loading
-Service waking up
-```
-
-This is expected for the free instance.
-
-### Vercel preview fails on backend-only PR
-
-Vercel can attempt a preview deployment for every GitHub PR, even backend-only branches.
-
-If a backend PR passes backend checks but the Vercel preview fails, inspect whether the failure is only a frontend preview deployment. A Vercel preview failure does not necessarily mean backend code is broken.
-
-### API works locally but fails on Vercel
-
-Check `frontend/vercel.json`.
-
-The frontend uses `/api/v1` relative paths. Vercel must rewrite `/api/*` to Render backend.
-
-Also check Render backend `CORS_ALLOWED_ORIGINS` includes:
-
-```text
-https://scsa-issue-tracker.vercel.app
-```
-
-### PostgreSQL query fails but Oracle local worked
-
-Oracle and PostgreSQL differ in SQL dialect and type inference.
-
-Example issue observed:
-
-```text
-ERROR: function lower(bytea) does not exist
-```
-
-Cause:
-
-```text
-JPQL nullable parameters such as :keyword is null can make PostgreSQL infer an unexpected parameter type.
-```
-
-Preferred fix:
-
-```text
-Build dynamic filters in Java with Specification/Criteria and include only conditions that have actual values.
-```
-
-## Manual Redeploy
-
-Backend:
-
-```text
-Render
--> scsa-issue-tracker-api
--> Manual Deploy
--> Deploy latest commit
-```
-
-Frontend:
-
-```text
-Vercel
--> scsa-issue-tracker
--> Deployments
--> Redeploy
-```
-
-## Current Operational Notes
-
-- Backend deploy source is `backend-dev`.
-- Frontend production currently serves `https://scsa-issue-tracker.vercel.app`.
-- Render PostgreSQL free database expires on 2026-06-27 unless upgraded.
-- Keep secrets out of GitHub, screenshots, issue comments, and chat logs.
+Render free instances sleep after inactivity. Wake the backend before demos.
