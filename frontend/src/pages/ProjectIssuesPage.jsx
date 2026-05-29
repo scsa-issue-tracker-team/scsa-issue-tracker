@@ -8,7 +8,9 @@ import Badge from "../components/Badge.jsx";
 import Modal from "../components/Modal.jsx";
 import MembersPanel from "../components/MembersPanel.jsx";
 import MembersModal from "../components/MembersModal.jsx";
+import ChatDrawer from "../components/ChatDrawer.jsx";
 import WorkloadBars from "../components/WorkloadBars.jsx";
+import MarkdownEditor from "../components/MarkdownEditor.jsx";
 import { ISSUE_TYPE, ISSUE_STATUS, ISSUE_PRIORITY, typeMeta, statusMeta, priorityMeta } from "../lib/issueMeta.js";
 import { timeAgo, formatDueDate, dueState, dueLabel } from "../lib/format.js";
 import { useProjectMembers } from "../hooks/useProjectMembers.js";
@@ -30,13 +32,18 @@ export default function ProjectIssuesPage() {
   const [keyword, setKeyword] = useState("");
   const [searchTerm, setSearchTerm] = useState(""); // 디바운스된 실제 검색어
   const [sort, setSort] = useState("createdAt,desc");
-  const [view, setView] = useState("list"); // list | grouped | board
+  const [view, setView] = useState("board"); // list | grouped | board
+  const issueFilters =
+    view === "board"
+      ? { issueType: filters.issueType, priority: filters.priority, assigneeId: filters.assigneeId }
+      : filters;
   const issuesQuery = useFetch(
-    () => listIssues(projectId, { ...filters, keyword: searchTerm || undefined, sort }),
-    [projectId, filters.status, filters.issueType, filters.priority, filters.assigneeId, searchTerm, sort]
+    () => listIssues(projectId, { ...issueFilters, keyword: searchTerm || undefined, sort }),
+    [projectId, view, filters.status, filters.issueType, filters.priority, filters.assigneeId, searchTerm, sort]
   );
   const [modalOpen, setModalOpen] = useState(false);
   const [membersOpen, setMembersOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
 
   // 서버 데이터를 로컬에 미러링 — 보드 드래그 시 옵티미스틱 갱신을 위해.
   // (훅은 early return보다 위에 있어야 한다 — Rules of Hooks)
@@ -61,7 +68,7 @@ export default function ProjectIssuesPage() {
   const project = projectQuery.data;
   const issues = localIssues;
   const total = issuesQuery.data?.totalElements ?? 0;
-  const hasFilter = filters.status || filters.issueType || filters.priority || filters.assigneeId || searchTerm;
+  const hasFilter = (view !== "board" && filters.status) || filters.issueType || filters.priority || filters.assigneeId || searchTerm;
 
   const clearFilters = () => {
     setFilters({ status: "", issueType: "", priority: "", assigneeId: "" });
@@ -100,6 +107,9 @@ export default function ProjectIssuesPage() {
           <button className="btn ghost members-mobile-btn" onClick={() => setMembersOpen(true)}>
             멤버 {membersState.members.length > 0 && `(${membersState.members.length})`}
           </button>
+          <button className="btn ghost" onClick={() => setChatOpen(true)} title="프로젝트 채팅">
+            💬 채팅
+          </button>
           <button className="btn primary" onClick={() => setModalOpen(true)}>
             + 새 이슈
           </button>
@@ -125,8 +135,10 @@ export default function ProjectIssuesPage() {
           </form>
 
           <div className="filter-bar">
-            <FilterSelect label="상태" value={filters.status} options={ISSUE_STATUS}
-              onChange={(v) => setFilters({ ...filters, status: v })} />
+            {view !== "board" && (
+              <FilterSelect label="상태" value={filters.status} options={ISSUE_STATUS}
+                onChange={(v) => setFilters({ ...filters, status: v })} />
+            )}
             <FilterSelect label="유형" value={filters.issueType} options={ISSUE_TYPE}
               onChange={(v) => setFilters({ ...filters, issueType: v })} />
             <FilterSelect label="우선순위" value={filters.priority} options={ISSUE_PRIORITY}
@@ -224,6 +236,13 @@ export default function ProjectIssuesPage() {
         open={membersOpen}
         onClose={() => setMembersOpen(false)}
         membersState={membersState}
+      />
+
+      <ChatDrawer
+        open={chatOpen}
+        onClose={() => setChatOpen(false)}
+        projectId={projectId}
+        projectName={project?.name}
       />
     </div>
   );
@@ -423,16 +442,21 @@ function CreateIssueModal({ projectId, members, open, onClose, onCreated }) {
   const close = () => { setError(null); setForm(empty); onClose(); };
 
   return (
-    <Modal open={open} title="새 이슈" onClose={close}>
+    <Modal open={open} title="새 이슈" onClose={close} size="wide" resizable>
       <form className="form" onSubmit={submit}>
         <label className="field">
           <span>제목</span>
           <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required autoFocus />
         </label>
-        <label className="field">
+        <div className="field">
           <span>내용 (선택)</span>
-          <textarea value={form.content} rows={4} onChange={(e) => setForm({ ...form, content: e.target.value })} />
-        </label>
+          <MarkdownEditor
+            value={form.content}
+            rows={4}
+            placeholder="문제 상황, 재현 방법, 기대 결과를 Markdown으로 남겨보세요."
+            onChange={(content) => setForm({ ...form, content })}
+          />
+        </div>
         <div className="field-row">
           <SelectField label="유형" value={form.issueType} options={ISSUE_TYPE}
             onChange={(v) => setForm({ ...form, issueType: v })} />

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useAsync } from "../hooks/useAsync.js";
@@ -11,11 +11,17 @@ import { useDocumentTitle } from "../hooks/useDocumentTitle.js";
 export default function LoginPage() {
   const [mode, setMode] = useState("login"); // "login" | "signup"
   useDocumentTitle(mode === "login" ? "로그인" : "회원가입");
-  const { login } = useAuth();
+  const { login, isAuthenticated, booting } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const toast = useToast();
   const from = location.state?.from?.pathname ?? "/dashboard";
+
+  useEffect(() => {
+    if (!booting && isAuthenticated) {
+      navigate(from, { replace: true });
+    }
+  }, [booting, from, isAuthenticated, navigate]);
 
   const loginAsync = useAsync(login);
   const signupAsync = useAsync(signupApi);

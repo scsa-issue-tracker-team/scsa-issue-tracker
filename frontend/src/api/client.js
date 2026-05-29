@@ -8,10 +8,20 @@ const BASE = "/api/v1";
 // AuthContext가 부팅 시 토큰 getter와 401 핸들러를 주입한다.
 let getToken = () => null;
 let onUnauthorized = () => {};
+// ColdStartContext가 "일정 시간 넘게 응답이 안 오는 요청"과 "응답이 돌아온 요청"을 구독한다.
+// Render 무료 콜드 스타트(50초) 감지용.
+let onSlowRequestStart = () => {};
+let onSlowRequestEnd = () => {};
+const SLOW_THRESHOLD_MS = 3000;
 
 export function setAuthHooks(hooks) {
   if (hooks.getToken) getToken = hooks.getToken;
   if (hooks.onUnauthorized) onUnauthorized = hooks.onUnauthorized;
+}
+
+export function setSlowRequestHooks(hooks) {
+  if (hooks.onStart) onSlowRequestStart = hooks.onStart;
+  if (hooks.onEnd) onSlowRequestEnd = hooks.onEnd;
 }
 
 export class ApiError extends Error {
@@ -42,6 +52,15 @@ async function request(path, { method = "GET", body, params, auth = true } = {})
   if (token) headers.Authorization = `Bearer ${token}`;
 
   let response;
+  // 이 요청이 SLOW_THRESHOLD_MS 넘게 걸리면 계수기 올리고,
+  // 응답 올 때까지 이 요청은 "slow" 상태로 카운팅된다.
+  let slowTimer = null;
+  let markedSlow = false;
+  slowTimer = setTimeout(() => {
+    markedSlow = true;
+    onSlowRequestStart();
+  }, SLOW_THRESHOLD_MS);
+
   try {
     response = await fetch(`${BASE}${path}${buildQuery(params)}`, {
       method,
@@ -49,9 +68,13 @@ async function request(path, { method = "GET", body, params, auth = true } = {})
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
   } catch {
+    clearTimeout(slowTimer);
+    if (markedSlow) onSlowRequestEnd();
     // 네트워크 자체 실패(백엔드 다운 등) → status 0
     throw new ApiError(0, "서버에 연결할 수 없습니다.");
   }
+  clearTimeout(slowTimer);
+  if (markedSlow) onSlowRequestEnd();
 
   // 본문 파싱 (없을 수도 있음)
   const text = await response.text();
